@@ -205,7 +205,9 @@ cartogram_cont.sf <- function(x, weight, itermax = 15, maxSizeError = 1.0001,
   # Set the threshold value to the proportion of zeros + number of cases corresponding to 1% of the observations, if larger than default value of 0.05
   if(threshold == "auto") {
     threshold <- round(max(0.05, (sum(value == 0, na.rm = TRUE) + ceiling(length(value)/100) )/ length(value)), 2)
-    message("\nSetting threshold parameter to ", threshold, ".\n")
+    if(verbose) {
+      message("\nSetting threshold parameter to ", threshold, ".\n")
+    }
   }
   
   switch(prepare,
@@ -323,6 +325,10 @@ cartogram_cont.sf <- function(x, weight, itermax = 15, maxSizeError = 1.0001,
     
     sf::st_geometry(x.iter) <- do.call(sf::st_sfc, x.iter_geom)
   }
+  
+  # Restore CRS
+  st_crs(x.iter) <- st_crs(x)
+  
   return(sf::st_buffer(x.iter, 0))
 }
 

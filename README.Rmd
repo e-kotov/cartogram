@@ -7,9 +7,9 @@ output:
 ---
 
 <!-- badges: start -->
-[![CRAN status](http://www.r-pkg.org/badges/version/cartogram)](https://cran.r-project.org/package=cartogram)
+[![CRAN status](https://www.r-pkg.org/badges/version/cartogram)](https://cran.r-project.org/package=cartogram)
 [![R-CMD-check](https://github.com/sjewo/cartogram/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/sjewo/cartogram/actions/workflows/R-CMD-check.yaml)
-[![CRAN Downloads](http://cranlogs.r-pkg.org/badges/cartogram)](https://cran.r-project.org/package=cartogram)
+[![CRAN Downloads](https://cranlogs.r-pkg.org/badges/cartogram)](https://cran.r-project.org/package=cartogram)
 <!-- badges: end -->
 
 ```{r, echo=F}
@@ -30,17 +30,17 @@ You can install the **cartogram** package from CRAN as follows:
 install.packages("cartogram")
 ```
 
-To upgrade to the latest development version of `cartogram`, install the package `devtools` and run the following command:
+To upgrade to the latest development version of `cartogram`, install the package `remotes` and run the following command:
 
 ```{r, eval=FALSE}
-devtools::install_github("sjewo/cartogram")
+remotes::install_github("sjewo/cartogram")
 ```
 
 ## Examples
 
 ### Continuous Area Cartogram
 
-```{r cont}
+```{r cont, fig.asp = 1.2}
 library(cartogram)
 library(sf)
 library(tmap)
@@ -65,7 +65,7 @@ tm_shape(afr_cont) + tm_polygons("pop_est", style = "jenks") +
 
 Many thanks to @rCarto and @neocarto for contributing the code!
 
-```{r ncont}
+```{r ncont, fig.asp = 1.2}
 # construct cartogram
 afr_ncont <- cartogram_ncont(afr, "pop_est")
 
@@ -79,13 +79,42 @@ tm_shape(afr) + tm_borders() +
 
 Many thanks to @rCarto for contributing the code!
 
-```{r dorling}
+```{r dorling, fig.asp = 1.2}
 # construct cartogram
 afr_dorling <- cartogram_dorling(afr, "pop_est")
 
 # plot it
 tm_shape(afr) + tm_borders() +
   tm_shape(afr_dorling) + tm_polygons("pop_est", style = "jenks") +
+  tm_layout(frame = FALSE, legend.position = c("left", "bottom"))
+```
+
+## Use multiple CPU cores
+
+Many thanks to @e-kotov for contributing the code!
+
+```{r parallel, fig.asp = 1.2}
+library(cartogram)
+library(sf)
+library(tmap)
+
+library(future)
+library(future.apply)
+library(parallelly)
+
+data("World")
+
+# keep only the african continent
+afr <- World[World$continent == "Africa", ]
+
+# project the map
+afr <- st_transform(afr, 3395)
+
+# Create cartogram using 2 CPU cores on local machine
+afr_cont <- cartogram_cont(afr, weight = "pop_est", itermax = 5, n_cpu = 2)
+
+# plot it
+tm_shape(afr_cont) + tm_polygons("pop_est", style = "jenks") +
   tm_layout(frame = FALSE, legend.position = c("left", "bottom"))
 ```
 
