@@ -217,7 +217,7 @@ cartogram_ncont.sf <- function(
     # handle show_progress
     if (show_progress) {
       cartogram_assert_package("progressr")
-      old_handlers <- progressr::handlers(c("progress"))
+      old_handlers <- progressr::handlers("progress")
       on.exit(progressr::handlers(old_handlers), add = TRUE)
       p <- progressr::progressor(along = seq_len(nrow(spdf)))
     } else {
