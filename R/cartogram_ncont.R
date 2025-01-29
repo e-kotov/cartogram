@@ -112,8 +112,8 @@ cartogram_ncont <- function(
   weight,
   k = 1,
   inplace = TRUE,
-  n_cpu = "respect_future_plan",
-  show_progress = TRUE
+  n_cpu = getOption("cartogram_n_cpu", "respect_future_plan"),
+  show_progress = getOption("cartogram.show_progress", TRUE)
 ){
   UseMethod("cartogram_ncont")
 }
@@ -138,8 +138,8 @@ cartogram_ncont.SpatialPolygonsDataFrame <- function(
   weight,
   k = 1,
   inplace = TRUE,
-  n_cpu = "respect_future_plan",
-  show_progress = TRUE
+  n_cpu = getOption("cartogram_n_cpu", "respect_future_plan"),
+  show_progress = getOption("cartogram.show_progress", TRUE)
 ){
   as(cartogram_ncont.sf(sf::st_as_sf(x), weight, k = k, inplace = inplace, n_cpu = n_cpu, show_progress = show_progress), 'Spatial')
 }
@@ -153,8 +153,8 @@ cartogram_ncont.sf <- function(
   weight,
   k = 1,
   inplace = TRUE,
-  n_cpu = "respect_future_plan",
-  show_progress = TRUE
+  n_cpu = getOption("cartogram_n_cpu", "respect_future_plan"),
+  show_progress = getOption("cartogram.show_progress", TRUE)
 ) {
   
   if (isTRUE(sf::st_is_longlat(x))) {
