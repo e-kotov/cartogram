@@ -15,7 +15,8 @@ cartogram_cont(
   threshold = "auto",
   verbose = FALSE,
   n_cpu = getOption("cartogram_n_cpu", "respect_future_plan"),
-  show_progress = getOption("cartogram.show_progress", TRUE)
+  show_progress = getOption("cartogram.show_progress", TRUE),
+  animate = FALSE
 )
 
 \method{cartogram_cont}{SpatialPolygonsDataFrame}(
@@ -27,7 +28,8 @@ cartogram_cont(
   threshold = "auto",
   verbose = FALSE,
   n_cpu = getOption("cartogram_n_cpu", "respect_future_plan"),
-  show_progress = getOption("cartogram.show_progress", TRUE)
+  show_progress = getOption("cartogram.show_progress", TRUE),
+  animate = FALSE
 )
 
 \method{cartogram_cont}{sf}(
@@ -39,7 +41,8 @@ cartogram_cont(
   threshold = "auto",
   verbose = FALSE,
   n_cpu = getOption("cartogram_n_cpu", "respect_future_plan"),
-  show_progress = getOption("cartogram.show_progress", TRUE)
+  show_progress = getOption("cartogram.show_progress", TRUE),
+  animate = FALSE
 )
 }
 \arguments{
@@ -66,6 +69,8 @@ cartogram_cont(
 * a `numeric` value - Use the specified number of cores. In this case `cartogram_cont` will use set the specified number of cores internally with `future::plan(future::multisession, workers = n_cpu)` and revert that back by switching the plan back to whichever plan might have been set before by the user. If only 1 core is set, the function will not require `future` and `future.apply` and will run on a single core.}
 
 \item{show_progress}{A `logical` value. If TRUE, show progress bar. Defaults to TRUE.}
+
+\item{animate}{A `logical` value. If TRUE, save geometry distortion for each itertion and add a column .cartogram_iteration.}
 }
 \value{
 An object of the same class as x
@@ -141,6 +146,14 @@ future::plan(future::sequential)
 par(mfrow=c(2,1))
 plot(nc[,"BIR74"], main="original", key.pos = NULL, reset = FALSE)
 plot(nc_utm_carto[,"BIR74"], main="distorted", key.pos = NULL, reset = FALSE)
+}
+
+# Animate distortion
+nc_utm_carto <- cartogram_cont(nc_utm, weight = "BIR74", itermax = 5, animate = TRUE)
+
+for (i in unique(nc_utm_carto$.cartogram_iteration)) {
+Sys.sleep(0.3)
+plot(nc_utm_carto[nc_utm_carto$.cartogram_iteration == i, "BIR74"]) 
 }
 
 }

@@ -26,6 +26,7 @@ cartogram(shp, ...)
 * "auto" - Use all except available cores (identified with \code{\link[parallelly]{availableCores}}) except 1, to keep the system responsive.
 * a `numeric` value - Use the specified number of cores. In this case `cartogram_cont` will use set the specified number of cores internally with `future::plan(future::multisession, workers = n_cpu)` and revert that back by switching the plan back to whichever plan might have been set before by the user. If only 1 core is set, the function will not require `future` and `future.apply` and will run on a single core.}
     \item{\code{show_progress}}{A `logical` value. If TRUE, show progress bar. Defaults to TRUE.}
+    \item{\code{animate}}{A `logical` value. If TRUE, save geometry distortion for each itertion and add a column .cartogram_iteration.}
   }}
 }
 \description{
