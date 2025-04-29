@@ -264,11 +264,14 @@ cartogram_cont.sf <- function(x, weight, itermax = 15, maxSizeError = 1.0001,
   
   x.iter <- x
   
-  # iterate until itermax is reached
-  if (show_progress) {
-    pb <- utils::txtProgressBar(min = 0, max = itermax, style = 3)
+  # setup for single-threaded progress bar
+  if (show_progress && !multithreadded) {
+    total_steps <- itermax * nrow(x)
+    step <- 0
   }
-  
+  bar_width <- 40
+
+  # iterate until itermax is reached
   for (z in 1:itermax) {
     # break if mean Sizer Error is less than maxSizeError
     if (meanSizeError < maxSizeError) break
@@ -302,29 +305,50 @@ cartogram_cont.sf <- function(x, weight, itermax = 15, maxSizeError = 1.0001,
     
     # Process polygons either in parallel or sequentially
     if (multithreadded) {
+      if (show_progress) {
+        cartogram_assert_package("progressr")
+        old_handlers <- progressr::handlers("progress")
+        on.exit(progressr::handlers(old_handlers), add = TRUE)
+        global_handlers_status <- progressr::handlers(global = NA)
+        progressr::handlers(global = TRUE)
+        on.exit(progressr::handlers(global = global_handlers_status), add = FALSE)
+        p <- progressr::progressor(along = seq_len(nrow(x.iter)))
+      } else {
+        p <- function(...) NULL
+      }
       x.iter_geom <- future.apply::future_lapply(
         seq_len(nrow(x.iter)),
         function(i) {
+            if (i %% 10 == 0) p(sprintf("Processing polygon %d in iteration %d", i, z))
           process_polygon(x.iter_geom[[i]], centroids, mass, radius, forceReductionFactor)
         },
         future.seed = TRUE
       )
     } else {
-      
       x.iter_geom <- lapply(
         seq_len(nrow(x.iter)),
         function(i) {
+          if (show_progress && !multithreadded) {
+            step <<- step + 1
+            # calculate progress
+            progress <- step / (itermax * nrow(x))
+            filled <- floor(progress * bar_width)
+            empty <- bar_width - filled
+            bar <- paste0("[Iter.:", z, "/", itermax, "] ",
+                          paste0(rep("=", filled), collapse = ""),
+                          paste0(rep(".", empty), collapse = ""),
+                          sprintf(" %3d%%", floor(progress * 100)))
+            cat("\r", bar)
+            flush.console()
+          }
           process_polygon(x.iter_geom[[i]], centroids, mass, radius, forceReductionFactor)
         }
       )
+      
     }
     
-    if (show_progress) {utils::setTxtProgressBar(pb, z)}
     sf::st_geometry(x.iter) <- do.call(sf::st_sfc, x.iter_geom)
   }
-  
-  if (show_progress) {close(pb)}
-      
   
   # Restore CRS
   st_crs(x.iter) <- st_crs(x)
