@@ -219,6 +219,9 @@ cartogram_ncont.sf <- function(
       cartogram_assert_package("progressr")
       old_handlers <- progressr::handlers("progress")
       on.exit(progressr::handlers(old_handlers), add = TRUE)
+      global_handlers_status <- progressr::handlers(global = NA)
+      progressr::handlers(global = TRUE)
+      on.exit(progressr::handlers(global = global_handlers_status), add = FALSE)
       p <- progressr::progressor(along = seq_len(nrow(spdf)))
     } else {
       p <- function(...) NULL # don't show progress
