@@ -268,8 +268,21 @@ cartogram_cont.sf <- function(x, weight, itermax = 15, maxSizeError = 1.0001,
   if (show_progress && !multithreadded) {
     total_steps <- itermax * nrow(x)
     step <- 0
+    bar_width <- 40
   }
-  bar_width <- 40
+
+  # setup for multi-threaded progress bar
+  if (show_progress && multithreadded) {
+    cartogram_assert_package("progressr")
+    old_handlers <- progressr::handlers("progress")
+    on.exit(progressr::handlers(old_handlers), add = TRUE)
+    global_handlers_status <- progressr::handlers(global = NA)
+    progressr::handlers(global = TRUE)
+    on.exit(progressr::handlers(global = global_handlers_status), add = FALSE)
+    p <- progressr::progressor(steps = itermax * nrow(x))
+  } else {
+    p <- function(...) NULL
+  }
 
   # iterate until itermax is reached
   for (z in 1:itermax) {
@@ -305,24 +318,14 @@ cartogram_cont.sf <- function(x, weight, itermax = 15, maxSizeError = 1.0001,
     
     # Process polygons either in parallel or sequentially
     if (multithreadded) {
-      if (show_progress) {
-        cartogram_assert_package("progressr")
-        old_handlers <- progressr::handlers("progress")
-        on.exit(progressr::handlers(old_handlers), add = TRUE)
-        global_handlers_status <- progressr::handlers(global = NA)
-        progressr::handlers(global = TRUE)
-        on.exit(progressr::handlers(global = global_handlers_status), add = FALSE)
-        p <- progressr::progressor(along = seq_len(nrow(x.iter)))
-      } else {
-        p <- function(...) NULL
-      }
-      x.iter_geom <- future.apply::future_lapply(
-        seq_len(nrow(x.iter)),
-        function(i) {
-            if (i %% 10 == 0) p(sprintf("Processing polygon %d in iteration %d", i, z))
-          process_polygon(x.iter_geom[[i]], centroids, mass, radius, forceReductionFactor)
-        },
-        future.seed = TRUE
+        suppressWarnings( x.iter_geom <- future.apply::future_lapply(
+          seq_len(nrow(x.iter)),
+          function(i) {
+            p(sprintf("[Iter.:%d/%d] Polygon %d", z, itermax, i))
+            process_polygon(x.iter_geom[[i]], centroids, mass, radius, forceReductionFactor)
+          },
+          future.seed = TRUE
+        )
       )
     } else {
       x.iter_geom <- lapply(
