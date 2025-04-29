@@ -155,10 +155,6 @@ cartogram_cont.sf <- function(x, weight, itermax = 15, maxSizeError = 1.0001,
     stop('Using an unprojected map. This function does not give correct centroids and distances for longitude/latitude data:\nUse "st_transform()" to transform coordinates to another projection.', call. = F)
   }
   
-  # Set progress bar (test)
-  if(is.character(show_progress))
-    show_progress = FALSE
-  
   # Check n_cpu parameter and set up parallel processing
   if(length(n_cpu) > 1) {
     stop('Invalid value for `n_cpu`. Use "respect_future_plan", "auto", or a numeric value.', call. = FALSE)
