@@ -113,9 +113,9 @@
 #'
 #' @references Dougenik, J. A., Chrisman, N. R., & Niemeyer, D. R. (1985). An Algorithm To Construct Continuous Area Cartograms. In The Professional Geographer, 37(1), 75-81.
 cartogram_cont <- function(x, weight, itermax=15, maxSizeError=1.0001,
-                      prepare="adjust", threshold="auto", verbose = FALSE,
-                      n_cpu=getOption("cartogram_n_cpu", "respect_future_plan"), 
-                      show_progress=getOption("cartogram.show_progress", TRUE)) {
+                           prepare="adjust", threshold="auto", verbose = FALSE,
+                           n_cpu=getOption("cartogram_n_cpu", "respect_future_plan"), 
+                           show_progress=getOption("cartogram.show_progress", TRUE)) {
   UseMethod("cartogram_cont")
 }
 
@@ -135,12 +135,12 @@ cartogram <- function(shp, ...) {
 #' @importFrom sf st_as_sf
 #' @export
 cartogram_cont.SpatialPolygonsDataFrame <- function(x, weight, itermax=15, maxSizeError=1.0001,
-                      prepare="adjust", threshold="auto", verbose = FALSE,
-                      n_cpu=getOption("cartogram_n_cpu", "respect_future_plan"), 
-                      show_progress=getOption("cartogram.show_progress", TRUE)) {
+                                                    prepare="adjust", threshold="auto", verbose = FALSE,
+                                                    n_cpu=getOption("cartogram_n_cpu", "respect_future_plan"), 
+                                                    show_progress=getOption("cartogram.show_progress", TRUE)) {
   as(cartogram_cont.sf(sf::st_as_sf(x), weight, itermax=itermax, maxSizeError=maxSizeError,
-                    prepare=prepare, threshold=threshold, verbose=verbose, n_cpu=n_cpu, show_progress=show_progress), 'Spatial')
-
+                       prepare=prepare, threshold=threshold, verbose=verbose, n_cpu=n_cpu, show_progress=show_progress), 'Spatial')
+  
 }
 
 #' @rdname cartogram_cont
@@ -150,7 +150,7 @@ cartogram_cont.sf <- function(x, weight, itermax = 15, maxSizeError = 1.0001,
                               prepare = "adjust", threshold = "auto", verbose = FALSE, 
                               n_cpu=getOption("cartogram_n_cpu", "respect_future_plan"), 
                               show_progress=getOption("cartogram.show_progress", TRUE)) {
-
+  
   if (isTRUE(sf::st_is_longlat(x))) {
     stop('Using an unprojected map. This function does not give correct centroids and distances for longitude/latitude data:\nUse "st_transform()" to transform coordinates to another projection.', call. = F)
   }
@@ -164,7 +164,7 @@ cartogram_cont.sf <- function(x, weight, itermax = 15, maxSizeError = 1.0001,
   if(!(weight %in% names(x))) {
     stop('There is no variable "', weight, '" in object "', deparse(substitute(x)), '".', call. = FALSE)
   }
-
+  
   # Determine if we should use multithreading
   if (is.numeric(n_cpu) & n_cpu == 1) {
     multithreadded <- FALSE
