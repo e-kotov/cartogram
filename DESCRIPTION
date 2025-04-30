@@ -28,7 +28,9 @@ Suggests:
     future.apply,
     parallelly,
     progressr,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    rmarkdown,
+    tmap
 Config/testthat/edition: 3
 Encoding: UTF-8
 RoxygenNote: 7.3.2
