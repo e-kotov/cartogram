@@ -346,9 +346,6 @@ cartogram_cont.sf <- function(x, weight, itermax = 15, maxSizeError = 1.0001,
           process_polygon(x.iter_geom[[i]], centroids, mass, radius, forceReductionFactor)
         }
       )
-      if (interactive() && show_progress) {
-        close(pb)
-      }
     }
     
     sf::st_geometry(x.iter) <- do.call(sf::st_sfc, x.iter_geom)
