@@ -41,3 +41,8 @@ docs
 
 # private folder for draft test scripts
 private
+
+.cache
+.config
+.local
+.vscode
