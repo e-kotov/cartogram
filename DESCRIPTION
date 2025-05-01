@@ -24,7 +24,7 @@ Imports:
     rlang,
     sf
 Suggests: 
-    future,
+    future (>= 1.40.0),
     future.apply,
     parallelly,
     progressr,
