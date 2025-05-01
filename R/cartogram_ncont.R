@@ -213,7 +213,7 @@ cartogram_ncont.sf <- function(
   if (multithreadded == TRUE) {
     cartogram_assert_package(c("future.apply"))
     # handle show_progress
-    if (show_progress) {
+    if (show_progress && interactive()) {
       cartogram_assert_package("progressr")
       old_handlers <- progressr::handlers("progress")
       on.exit(progressr::handlers(old_handlers), add = TRUE)
@@ -228,7 +228,9 @@ cartogram_ncont.sf <- function(
     spdf_geometry_list <- future.apply::future_lapply(
       X = seq_len(nrow(spdf)),
       FUN = function(i) {
-        p(sprintf("Processing polygon %d", i))
+        if (interactive() && show_progress) {
+          p(sprintf("Processing polygon %d", i))
+        }
         rescalePoly.sf(
           spdf[i, ],
           r = spdf$r[i],
@@ -238,13 +240,13 @@ cartogram_ncont.sf <- function(
       future.seed = TRUE
     )
   } else if (multithreadded == FALSE) {
-    if (show_progress) {
+    if (interactive() && show_progress) {
       pb <- utils::txtProgressBar(min = 0, max = nrow(spdf), style = 3)
     }
     spdf_geometry_list <- lapply(
       X = seq_len(nrow(spdf)),
       FUN = function(i) {
-        if (show_progress) {
+        if (interactive() && show_progress) {
           utils::setTxtProgressBar(pb, i)
         }
         rescalePoly.sf(
@@ -255,7 +257,7 @@ cartogram_ncont.sf <- function(
       }
     )
     
-    if (show_progress) {
+    if (interactive() && show_progress) {
       close(pb)
     }
   }

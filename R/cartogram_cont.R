@@ -266,7 +266,7 @@ cartogram_cont.sf <- function(x, weight, itermax = 15, maxSizeError = 1.0001,
   }
 
   # setup for multi-threaded progress bar
-  if (show_progress && multithreadded) {
+  if (show_progress && multithreadded && interactive()) {
     cartogram_assert_package("progressr")
     old_handlers <- progressr::handlers("progress")
     on.exit(progressr::handlers(old_handlers), add = TRUE)
@@ -315,16 +315,22 @@ cartogram_cont.sf <- function(x, weight, itermax = 15, maxSizeError = 1.0001,
         x.iter_geom <- future.apply::future_lapply(
           seq_len(nrow(x.iter)),
           function(i) {
-            p(sprintf("[Iter.:%d/%d] Polygon %d", z, itermax, i))
+            if (interactive() && show_progress) {
+              p(sprintf("[Iter.:%d/%d] Polygon %d", z, itermax, i))
+            }
             process_polygon(x.iter_geom[[i]], centroids, mass, radius, forceReductionFactor)
           },
           future.seed = TRUE
         )
+        # in case we used the local in-fuction plan instead of externally future plan set by user, shutdown the workers
+        if (n_cpu != "respect_future_plan") {
+          future::plan(future::sequential)
+        }
     } else {
       x.iter_geom <- lapply(
         seq_len(nrow(x.iter)),
         function(i) {
-          if (show_progress && !multithreadded) {
+          if (interactive() && show_progress && !multithreadded) {
             step <<- step + 1
             # calculate progress
             progress <- step / (itermax * nrow(x))
@@ -340,7 +346,9 @@ cartogram_cont.sf <- function(x, weight, itermax = 15, maxSizeError = 1.0001,
           process_polygon(x.iter_geom[[i]], centroids, mass, radius, forceReductionFactor)
         }
       )
-      
+      if (interactive() && show_progress) {
+        close(pb)
+      }
     }
     
     sf::st_geometry(x.iter) <- do.call(sf::st_sfc, x.iter_geom)
