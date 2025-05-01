@@ -8,3 +8,7 @@
 ^pkgdown$
 ^\.github$
 ^private$
+^.cache$
+^.config$
+^.local$
+^.vscode$
