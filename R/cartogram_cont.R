@@ -103,7 +103,7 @@
 #'nc_utm_carto <- cartogram_cont(nc_utm, weight = "BIR74", itermax = 5)
 #'
 #'# Shutdown the R processes that were created by the future plan
-#'future::plan(future::sequential) 
+#'future::plan(future::sequential)
 #' 
 #'# Plot 
 #'par(mfrow=c(2,1))
@@ -170,8 +170,7 @@ cartogram_cont.sf <- function(x, weight, itermax = 15, maxSizeError = 1.0001,
     multithreadded <- FALSE
   } else if (is.numeric(n_cpu) & n_cpu > 1) {
     cartogram_assert_package(c("future", "future.apply"))
-    original_plan <- future::plan(future::multisession, workers = n_cpu)
-    on.exit(future::plan(original_plan), add = TRUE)
+    with(future::plan(future::multisession, workers = n_cpu), local = TRUE)
     multithreadded <- TRUE
   } else if (n_cpu == "auto") {
     cartogram_assert_package("parallelly")
@@ -180,8 +179,7 @@ cartogram_cont.sf <- function(x, weight, itermax = 15, maxSizeError = 1.0001,
       multithreadded <- FALSE
     } else if (n_cpu > 1) {
       cartogram_assert_package(c("future", "future.apply"))
-      original_plan <- future::plan(future::multisession, workers = n_cpu)
-      on.exit(future::plan(original_plan), add = TRUE)
+      with(future::plan(future::multisession, workers = n_cpu), local = TRUE)
       multithreadded <- TRUE
       
       if(verbose) {
@@ -314,7 +312,7 @@ cartogram_cont.sf <- function(x, weight, itermax = 15, maxSizeError = 1.0001,
     
     # Process polygons either in parallel or sequentially
     if (multithreadded) {
-        suppressWarnings( x.iter_geom <- future.apply::future_lapply(
+        x.iter_geom <- future.apply::future_lapply(
           seq_len(nrow(x.iter)),
           function(i) {
             p(sprintf("[Iter.:%d/%d] Polygon %d", z, itermax, i))
@@ -322,7 +320,6 @@ cartogram_cont.sf <- function(x, weight, itermax = 15, maxSizeError = 1.0001,
           },
           future.seed = TRUE
         )
-      )
     } else {
       x.iter_geom <- lapply(
         seq_len(nrow(x.iter)),
@@ -338,7 +335,7 @@ cartogram_cont.sf <- function(x, weight, itermax = 15, maxSizeError = 1.0001,
                           paste0(rep(".", empty), collapse = ""),
                           sprintf(" %3d%%", floor(progress * 100)))
             cat("\r", bar)
-            flush.console()
+            utils::flush.console()
           }
           process_polygon(x.iter_geom[[i]], centroids, mass, radius, forceReductionFactor)
         }

@@ -169,8 +169,7 @@ cartogram_ncont.sf <- function(
     multithreadded <- FALSE
   } else if (is.numeric(n_cpu) & n_cpu > 1) {
     cartogram_assert_package(c("future", "future.apply"))
-    original_plan <- future::plan(future::multisession, workers = n_cpu)
-    on.exit(future::plan(original_plan), add = TRUE)
+    with(future::plan(future::multisession, workers = n_cpu), local = TRUE)
     multithreadded <- TRUE
   } else if (n_cpu == "auto") {
     cartogram_assert_package("parallelly")
@@ -179,8 +178,7 @@ cartogram_ncont.sf <- function(
       multithreadded <- FALSE
     } else if (n_cpu > 1) {
       cartogram_assert_package(c("future", "future.apply"))
-      original_plan <- future::plan(future::multisession, workers = n_cpu)
-      on.exit(future::plan(original_plan), add = TRUE)
+      with(future::plan(future::multisession, workers = n_cpu), local = TRUE)
       multithreadded <- TRUE
     }
   } else if (n_cpu == "respect_future_plan") {
