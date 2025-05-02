@@ -112,8 +112,8 @@ cartogram_ncont <- function(
   weight,
   k = 1,
   inplace = TRUE,
-  n_cpu = "respect_future_plan",
-  show_progress = TRUE
+  n_cpu = getOption("cartogram_n_cpu", "respect_future_plan"),
+  show_progress = getOption("cartogram.show_progress", TRUE)
 ){
   UseMethod("cartogram_ncont")
 }
@@ -138,8 +138,8 @@ cartogram_ncont.SpatialPolygonsDataFrame <- function(
   weight,
   k = 1,
   inplace = TRUE,
-  n_cpu = "respect_future_plan",
-  show_progress = TRUE
+  n_cpu = getOption("cartogram_n_cpu", "respect_future_plan"),
+  show_progress = getOption("cartogram.show_progress", TRUE)
 ){
   as(cartogram_ncont.sf(sf::st_as_sf(x), weight, k = k, inplace = inplace, n_cpu = n_cpu, show_progress = show_progress), 'Spatial')
 }
@@ -153,8 +153,8 @@ cartogram_ncont.sf <- function(
   weight,
   k = 1,
   inplace = TRUE,
-  n_cpu = "respect_future_plan",
-  show_progress = TRUE
+  n_cpu = getOption("cartogram_n_cpu", "respect_future_plan"),
+  show_progress = getOption("cartogram.show_progress", TRUE)
 ) {
   
   if (isTRUE(sf::st_is_longlat(x))) {
@@ -169,8 +169,7 @@ cartogram_ncont.sf <- function(
     multithreadded <- FALSE
   } else if (is.numeric(n_cpu) & n_cpu > 1) {
     cartogram_assert_package(c("future", "future.apply"))
-    original_plan <- future::plan(future::multisession, workers = n_cpu)
-    on.exit(future::plan(original_plan), add = TRUE)
+    with(future::plan(future::multisession, workers = n_cpu), local = TRUE)
     multithreadded <- TRUE
   } else if (n_cpu == "auto") {
     cartogram_assert_package("parallelly")
@@ -179,8 +178,7 @@ cartogram_ncont.sf <- function(
       multithreadded <- FALSE
     } else if (n_cpu > 1) {
       cartogram_assert_package(c("future", "future.apply"))
-      original_plan <- future::plan(future::multisession, workers = n_cpu)
-      on.exit(future::plan(original_plan), add = TRUE)
+      with(future::plan(future::multisession, workers = n_cpu), local = TRUE)
       multithreadded <- TRUE
     }
   } else if (n_cpu == "respect_future_plan") {
@@ -215,10 +213,13 @@ cartogram_ncont.sf <- function(
   if (multithreadded == TRUE) {
     cartogram_assert_package(c("future.apply"))
     # handle show_progress
-    if (show_progress) {
+    if (show_progress && interactive()) {
       cartogram_assert_package("progressr")
+      old_handlers <- progressr::handlers("progress")
+      on.exit(progressr::handlers(old_handlers), add = TRUE)
+      global_handlers_status <- progressr::handlers(global = NA)
       progressr::handlers(global = TRUE)
-      progressr::handlers("progress")
+      on.exit(progressr::handlers(global = global_handlers_status), add = FALSE)
       p <- progressr::progressor(along = seq_len(nrow(spdf)))
     } else {
       p <- function(...) NULL # don't show progress
@@ -227,7 +228,9 @@ cartogram_ncont.sf <- function(
     spdf_geometry_list <- future.apply::future_lapply(
       X = seq_len(nrow(spdf)),
       FUN = function(i) {
-        p(sprintf("Processing polygon %d", i))
+        if (interactive() && show_progress) {
+          p(sprintf("Processing polygon %d", i))
+        }
         rescalePoly.sf(
           spdf[i, ],
           r = spdf$r[i],
@@ -237,13 +240,13 @@ cartogram_ncont.sf <- function(
       future.seed = TRUE
     )
   } else if (multithreadded == FALSE) {
-    if (show_progress) {
+    if (interactive() && show_progress) {
       pb <- utils::txtProgressBar(min = 0, max = nrow(spdf), style = 3)
     }
     spdf_geometry_list <- lapply(
       X = seq_len(nrow(spdf)),
       FUN = function(i) {
-        if (show_progress) {
+        if (interactive() && show_progress) {
           utils::setTxtProgressBar(pb, i)
         }
         rescalePoly.sf(
@@ -254,7 +257,7 @@ cartogram_ncont.sf <- function(
       }
     )
     
-    if (show_progress) {
+    if (interactive() && show_progress) {
       close(pb)
     }
   }

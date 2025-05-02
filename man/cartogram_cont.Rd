@@ -135,7 +135,7 @@ future::plan(future::multisession, workers = 2)
 nc_utm_carto <- cartogram_cont(nc_utm, weight = "BIR74", itermax = 5)
 
 # Shutdown the R processes that were created by the future plan
-future::plan(future::sequential) 
+future::plan(future::sequential)
 
 # Plot 
 par(mfrow=c(2,1))

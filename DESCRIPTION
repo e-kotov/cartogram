@@ -24,12 +24,12 @@ Imports:
     rlang,
     sf
 Suggests: 
-    future,
+    future (>= 1.40.0),
     future.apply,
     parallelly,
     progressr,
-    testthat (>= 3.0.0),
     rmarkdown,
+    testthat (>= 3.0.0),
     tmap
 Config/testthat/edition: 3
 Encoding: UTF-8

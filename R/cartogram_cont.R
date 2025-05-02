@@ -103,7 +103,7 @@
 #'nc_utm_carto <- cartogram_cont(nc_utm, weight = "BIR74", itermax = 5)
 #'
 #'# Shutdown the R processes that were created by the future plan
-#'future::plan(future::sequential) 
+#'future::plan(future::sequential)
 #' 
 #'# Plot 
 #'par(mfrow=c(2,1))
@@ -155,10 +155,6 @@ cartogram_cont.sf <- function(x, weight, itermax = 15, maxSizeError = 1.0001,
     stop('Using an unprojected map. This function does not give correct centroids and distances for longitude/latitude data:\nUse "st_transform()" to transform coordinates to another projection.', call. = F)
   }
   
-  # Set progress bar (test)
-  if(is.character(show_progress))
-    show_progress = FALSE
-  
   # Check n_cpu parameter and set up parallel processing
   if(length(n_cpu) > 1) {
     stop('Invalid value for `n_cpu`. Use "respect_future_plan", "auto", or a numeric value.', call. = FALSE)
@@ -174,8 +170,7 @@ cartogram_cont.sf <- function(x, weight, itermax = 15, maxSizeError = 1.0001,
     multithreadded <- FALSE
   } else if (is.numeric(n_cpu) & n_cpu > 1) {
     cartogram_assert_package(c("future", "future.apply"))
-    original_plan <- future::plan(future::multisession, workers = n_cpu)
-    on.exit(future::plan(original_plan), add = TRUE)
+    with(future::plan(future::multisession, workers = n_cpu), local = TRUE)
     multithreadded <- TRUE
   } else if (n_cpu == "auto") {
     cartogram_assert_package("parallelly")
@@ -184,8 +179,7 @@ cartogram_cont.sf <- function(x, weight, itermax = 15, maxSizeError = 1.0001,
       multithreadded <- FALSE
     } else if (n_cpu > 1) {
       cartogram_assert_package(c("future", "future.apply"))
-      original_plan <- future::plan(future::multisession, workers = n_cpu)
-      on.exit(future::plan(original_plan), add = TRUE)
+      with(future::plan(future::multisession, workers = n_cpu), local = TRUE)
       multithreadded <- TRUE
       
       if(verbose) {
@@ -264,11 +258,27 @@ cartogram_cont.sf <- function(x, weight, itermax = 15, maxSizeError = 1.0001,
   
   x.iter <- x
   
-  # iterate until itermax is reached
-  if (show_progress) {
-    pb <- utils::txtProgressBar(min = 0, max = itermax, style = 3)
+  # setup for single-threaded progress bar
+  if (show_progress && !multithreadded) {
+    total_steps <- itermax * nrow(x)
+    step <- 0
+    bar_width <- 40
   }
-  
+
+  # setup for multi-threaded progress bar
+  if (show_progress && multithreadded && interactive()) {
+    cartogram_assert_package("progressr")
+    old_handlers <- progressr::handlers("progress")
+    on.exit(progressr::handlers(old_handlers), add = TRUE)
+    global_handlers_status <- progressr::handlers(global = NA)
+    progressr::handlers(global = TRUE)
+    on.exit(progressr::handlers(global = global_handlers_status), add = FALSE)
+    p <- progressr::progressor(steps = itermax * nrow(x))
+  } else {
+    p <- function(...) NULL
+  }
+
+  # iterate until itermax is reached
   for (z in 1:itermax) {
     # break if mean Sizer Error is less than maxSizeError
     if (meanSizeError < maxSizeError) break
@@ -302,29 +312,44 @@ cartogram_cont.sf <- function(x, weight, itermax = 15, maxSizeError = 1.0001,
     
     # Process polygons either in parallel or sequentially
     if (multithreadded) {
-      x.iter_geom <- future.apply::future_lapply(
-        seq_len(nrow(x.iter)),
-        function(i) {
-          process_polygon(x.iter_geom[[i]], centroids, mass, radius, forceReductionFactor)
-        },
-        future.seed = TRUE
-      )
+        x.iter_geom <- future.apply::future_lapply(
+          seq_len(nrow(x.iter)),
+          function(i) {
+            if (interactive() && show_progress) {
+              p(sprintf("[Iter.:%d/%d] Polygon %d", z, itermax, i))
+            }
+            process_polygon(x.iter_geom[[i]], centroids, mass, radius, forceReductionFactor)
+          },
+          future.seed = TRUE
+        )
+        # in case we used the local in-fuction plan instead of externally future plan set by user, shutdown the workers
+        if (n_cpu != "respect_future_plan") {
+          future::plan(future::sequential)
+        }
     } else {
-      
       x.iter_geom <- lapply(
         seq_len(nrow(x.iter)),
         function(i) {
+          if (interactive() && show_progress && !multithreadded) {
+            step <<- step + 1
+            # calculate progress
+            progress <- step / (itermax * nrow(x))
+            filled <- floor(progress * bar_width)
+            empty <- bar_width - filled
+            bar <- paste0("[Iter.:", z, "/", itermax, "] ",
+                          paste0(rep("=", filled), collapse = ""),
+                          paste0(rep(".", empty), collapse = ""),
+                          sprintf(" %3d%%", floor(progress * 100)))
+            cat("\r", bar)
+            utils::flush.console()
+          }
           process_polygon(x.iter_geom[[i]], centroids, mass, radius, forceReductionFactor)
         }
       )
     }
     
-    if (show_progress) {utils::setTxtProgressBar(pb, z)}
     sf::st_geometry(x.iter) <- do.call(sf::st_sfc, x.iter_geom)
   }
-  
-  if (show_progress) {close(pb)}
-  
   
   # Restore CRS
   st_crs(x.iter) <- st_crs(x)

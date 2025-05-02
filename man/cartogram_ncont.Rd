@@ -11,8 +11,8 @@ cartogram_ncont(
   weight,
   k = 1,
   inplace = TRUE,
-  n_cpu = "respect_future_plan",
-  show_progress = TRUE
+  n_cpu = getOption("cartogram_n_cpu", "respect_future_plan"),
+  show_progress = getOption("cartogram.show_progress", TRUE)
 )
 
 \method{cartogram_ncont}{SpatialPolygonsDataFrame}(
@@ -20,8 +20,8 @@ cartogram_ncont(
   weight,
   k = 1,
   inplace = TRUE,
-  n_cpu = "respect_future_plan",
-  show_progress = TRUE
+  n_cpu = getOption("cartogram_n_cpu", "respect_future_plan"),
+  show_progress = getOption("cartogram.show_progress", TRUE)
 )
 
 \method{cartogram_ncont}{sf}(
@@ -29,8 +29,8 @@ cartogram_ncont(
   weight,
   k = 1,
   inplace = TRUE,
-  n_cpu = "respect_future_plan",
-  show_progress = TRUE
+  n_cpu = getOption("cartogram_n_cpu", "respect_future_plan"),
+  show_progress = getOption("cartogram.show_progress", TRUE)
 )
 }
 \arguments{
