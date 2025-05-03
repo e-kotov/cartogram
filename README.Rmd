@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-Construct a continuous area cartogram by a rubber sheet distortion algorithm (Dougenik et al. 1985), non-contiguous Area Cartograms (Olson 1976), and non-overlapping Circles Cartogram (Dorling el al. 1996) in R.
+`cartogram` is an R package that implements methods for generating continuous area cartograms (based on the rubber sheet distortion algorithm by Dougenik et al., 1985), non-contiguous area cartograms (Olson, 1976), and non-overlapping circles cartograms (Dorling et al., 1996).
 
 ## Installation
 
@@ -47,53 +47,69 @@ library(tmap)
 
 data("World")
 
-# keep only the african continent
+# Keep only the African continent
 afr <- World[World$continent == "Africa", ]
 
-# project the map
+# Project the map
 afr <- st_transform(afr, 3395)
 
-# construct cartogram
+# Construct continuous area cartogram
 afr_cont <- cartogram_cont(afr, "pop_est", itermax = 5)
 
-# plot it
-tm_shape(afr_cont) + 
-  tm_polygons("pop_est", 
+# Plot the cartogram
+tm_shape(afr_cont) +
+  tm_polygons("pop_est",
               fill.scale = tm_scale_intervals(style = "jenks")) +
-  tm_layout(frame = FALSE, 
+  tm_layout(frame = FALSE,
             legend.position = c("left", "bottom"))
 ```
 
 ### Non-contiguous Area Cartogram
 
-Many thanks to @rCarto and @neocarto for contributing the code!
-
 ```{r ncont, fig.asp = 1.2}
-# construct cartogram
-afr_ncont <- cartogram_ncont(afr, "pop_est")
+library(cartogram)
+library(sf)
+library(tmap)
 
-# plot it
-tm_shape(afr) + 
+data("World")
+
+# Keep only the African continent
+afr <- World[World$continent == "Africa", ]
+
+# Project the map
+afr <- st_transform(afr, 3395)
+
+# Plot the original map boundaries
+tm_shape(afr) +
   tm_borders() +
-  tm_shape(afr_ncont) + 
+  # Add the the cartogram
+  tm_shape(cartogram_ncont(afr, "pop_est")) +
   tm_polygons("pop_est",
               fill.scale = tm_scale_intervals(style = "jenks")) +
-  tm_layout(frame = FALSE, 
+  tm_layout(frame = FALSE,
             legend.position = c("left", "bottom"))
 ```
 
 ### Non-Overlapping Circles Cartogram
 
-Many thanks to @rCarto for contributing the code!
-
 ```{r dorling, fig.asp = 1.2}
-# construct cartogram
-afr_dorling <- cartogram_dorling(afr, "pop_est")
+library(cartogram)
+library(sf)
+library(tmap)
 
-# plot it
-tm_shape(afr) + 
+data("World")
+
+# Keep only the African continent
+afr <- World[World$continent == "Africa", ]
+
+# Project the map
+afr <- st_transform(afr, 3395)
+
+# Plot the original map boundaries
+tm_shape(afr) +
   tm_borders() +
-  tm_shape(afr_dorling) + 
+  # Add the the cartogram
+  tm_shape(cartogram_dorling(afr, "pop_est")) +
   tm_polygons("pop_est",
               fill.scale = tm_scale_intervals(style = "jenks")) +
   tm_layout(frame = FALSE,
@@ -102,13 +118,10 @@ tm_shape(afr) +
 
 ## Use multiple CPU cores
 
-Many thanks to @e-kotov for contributing the code!
-
 ```{r parallel, fig.asp = 1.2}
 library(cartogram)
 library(sf)
 library(tmap)
-
 library(future)
 library(future.apply)
 library(parallelly)
@@ -116,26 +129,39 @@ library(progressr)
 
 data("World")
 
-# keep only the african continent
+# Keep only the African continent
 afr <- World[World$continent == "Africa", ]
 
-# project the map
+# Project the map
 afr <- st_transform(afr, 3395)
 
-# Create cartogram using 2 CPU cores on local machine
-afr_cont <- cartogram_cont(afr, weight = "pop_est", 
-                           itermax = 5, n_cpu = 2, 
-                           show_progress = FALSE)
+# Create cartogram using 2 CPU cores on the local machine
+# This can speed up computation for larger datasets.
+# Set show_progress to TRUE for a progress indicator.
+afr_cont <- cartogram_cont(afr, weight = "pop_est",
+                            itermax = 5, 
+                            n_cpu = 2,
+                            show_progress = FALSE)
 
-# plot it
-tm_shape(afr_cont) + 
+# Plot the cartogram
+tm_shape(afr_cont) +
   tm_polygons("pop_est",
               fill.scale = tm_scale_intervals(style = "jenks")) +
-  tm_layout(frame = FALSE, 
+  tm_layout(frame = FALSE,
             legend.position = c("left", "bottom"))
 ```
 
+## Acknowledgements
+
+The non-contiguous area cartogram and non-overlapping circles cartogram functionalities include major code contributions from @rCarto and @neocarto.
+
+@nowosad contributed to the package by transitioning it to use the `sf` package and by enhancing the documentation, a task further supported by documentation improvements from @oliveroy.
+
+The functionality to utilize multiple CPU cores was contributed by @e-kotov.
+
 ## References
+
+This package implements algorithms based on the following seminal works:
 
 * Dorling, D. (1996). Area Cartograms: Their Use and Creation. In Concepts and Techniques in Modern Geography (CATMOG), 59.
 * Dougenik, J. A., Chrisman, N. R., & Niemeyer, D. R. (1985). An Algorithm To Construct Continuous Area Cartograms. In The Professional Geographer, 37(1), 75-81.

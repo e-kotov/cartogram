@@ -10,9 +10,11 @@ status](https://www.r-pkg.org/badges/version/cartogram)](https://cran.r-project.
 Downloads](https://cranlogs.r-pkg.org/badges/cartogram)](https://cran.r-project.org/package=cartogram)
 <!-- badges: end -->
 
-Construct a continuous area cartogram by a rubber sheet distortion
-algorithm (Dougenik et al. 1985), non-contiguous Area Cartograms (Olson
-1976), and non-overlapping Circles Cartogram (Dorling el al. 1996) in R.
+`cartogram` is an R package that implements methods for generating
+continuous area cartograms (based on the rubber sheet distortion
+algorithm by Dougenik et al., 1985), non-contiguous area cartograms
+(Olson, 1976), and non-overlapping circles cartograms (Dorling et al.,
+1996).
 
 ## Installation
 
@@ -41,21 +43,20 @@ library(tmap)
 
 data("World")
 
-# keep only the african continent
+# Keep only the African continent
 afr <- World[World$continent == "Africa", ]
 
-# project the map
+# Project the map
 afr <- st_transform(afr, 3395)
 
-# construct cartogram
+# Construct continuous area cartogram
 afr_cont <- cartogram_cont(afr, "pop_est", itermax = 5)
-#>   |                                                                              |                                                                      |   0%  |                                                                              |==============                                                        |  20%  |                                                                              |============================                                          |  40%  |                                                                              |==========================================                            |  60%  |                                                                              |========================================================              |  80%  |                                                                              |======================================================================| 100%
 
-# plot it
-tm_shape(afr_cont) + 
-  tm_polygons("pop_est", 
+# Plot the cartogram
+tm_shape(afr_cont) +
+  tm_polygons("pop_est",
               fill.scale = tm_scale_intervals(style = "jenks")) +
-  tm_layout(frame = FALSE, 
+  tm_layout(frame = FALSE,
             legend.position = c("left", "bottom"))
 ```
 
@@ -63,20 +64,27 @@ tm_shape(afr_cont) +
 
 ### Non-contiguous Area Cartogram
 
-Many thanks to @rCarto and @neocarto for contributing the code!
-
 ``` r
-# construct cartogram
-afr_ncont <- cartogram_ncont(afr, "pop_est")
-#>   |                                                                              |                                                                      |   0%  |                                                                              |=                                                                     |   2%  |                                                                              |===                                                                   |   4%  |                                                                              |====                                                                  |   6%  |                                                                              |=====                                                                 |   8%  |                                                                              |=======                                                               |  10%  |                                                                              |========                                                              |  12%  |                                                                              |==========                                                            |  14%  |                                                                              |===========                                                           |  16%  |                                                                              |============                                                          |  18%  |                                                                              |==============                                                        |  20%  |                                                                              |===============                                                       |  22%  |                                                                              |================                                                      |  24%  |                                                                              |==================                                                    |  25%  |                                                                              |===================                                                   |  27%  |                                                                              |=====================                                                 |  29%  |                                                                              |======================                                                |  31%  |                                                                              |=======================                                               |  33%  |                                                                              |=========================                                             |  35%  |                                                                              |==========================                                            |  37%  |                                                                              |===========================                                           |  39%  |                                                                              |=============================                                         |  41%  |                                                                              |==============================                                        |  43%  |                                                                              |================================                                      |  45%  |                                                                              |=================================                                     |  47%  |                                                                              |==================================                                    |  49%  |                                                                              |====================================                                  |  51%  |                                                                              |=====================================                                 |  53%  |                                                                              |======================================                                |  55%  |                                                                              |========================================                              |  57%  |                                                                              |=========================================                             |  59%  |                                                                              |===========================================                           |  61%  |                                                                              |============================================                          |  63%  |                                                                              |=============================================                         |  65%  |                                                                              |===============================================                       |  67%  |                                                                              |================================================                      |  69%  |                                                                              |=================================================                     |  71%  |                                                                              |===================================================                   |  73%  |                                                                              |====================================================                  |  75%  |                                                                              |======================================================                |  76%  |                                                                              |=======================================================               |  78%  |                                                                              |========================================================              |  80%  |                                                                              |==========================================================            |  82%  |                                                                              |===========================================================           |  84%  |                                                                              |============================================================          |  86%  |                                                                              |==============================================================        |  88%  |                                                                              |===============================================================       |  90%  |                                                                              |=================================================================     |  92%  |                                                                              |==================================================================    |  94%  |                                                                              |===================================================================   |  96%  |                                                                              |===================================================================== |  98%  |                                                                              |======================================================================| 100%
+library(cartogram)
+library(sf)
+library(tmap)
 
-# plot it
-tm_shape(afr) + 
+data("World")
+
+# Keep only the African continent
+afr <- World[World$continent == "Africa", ]
+
+# Project the map
+afr <- st_transform(afr, 3395)
+
+# Plot the original map boundaries
+tm_shape(afr) +
   tm_borders() +
-  tm_shape(afr_ncont) + 
+  # Add the the cartogram
+  tm_shape(cartogram_ncont(afr, "pop_est")) +
   tm_polygons("pop_est",
               fill.scale = tm_scale_intervals(style = "jenks")) +
-  tm_layout(frame = FALSE, 
+  tm_layout(frame = FALSE,
             legend.position = c("left", "bottom"))
 ```
 
@@ -84,16 +92,24 @@ tm_shape(afr) +
 
 ### Non-Overlapping Circles Cartogram
 
-Many thanks to @rCarto for contributing the code!
-
 ``` r
-# construct cartogram
-afr_dorling <- cartogram_dorling(afr, "pop_est")
+library(cartogram)
+library(sf)
+library(tmap)
 
-# plot it
-tm_shape(afr) + 
+data("World")
+
+# Keep only the African continent
+afr <- World[World$continent == "Africa", ]
+
+# Project the map
+afr <- st_transform(afr, 3395)
+
+# Plot the original map boundaries
+tm_shape(afr) +
   tm_borders() +
-  tm_shape(afr_dorling) + 
+  # Add the the cartogram
+  tm_shape(cartogram_dorling(afr, "pop_est")) +
   tm_polygons("pop_est",
               fill.scale = tm_scale_intervals(style = "jenks")) +
   tm_layout(frame = FALSE,
@@ -104,13 +120,10 @@ tm_shape(afr) +
 
 ## Use multiple CPU cores
 
-Many thanks to @e-kotov for contributing the code!
-
 ``` r
 library(cartogram)
 library(sf)
 library(tmap)
-
 library(future)
 library(future.apply)
 library(parallelly)
@@ -118,28 +131,46 @@ library(progressr)
 
 data("World")
 
-# keep only the african continent
+# Keep only the African continent
 afr <- World[World$continent == "Africa", ]
 
-# project the map
+# Project the map
 afr <- st_transform(afr, 3395)
 
-# Create cartogram using 2 CPU cores on local machine
-afr_cont <- cartogram_cont(afr, weight = "pop_est", 
-                           itermax = 5, n_cpu = 2, 
-                           show_progress = FALSE)
+# Create cartogram using 2 CPU cores on the local machine
+# This can speed up computation for larger datasets.
+# Set show_progress to TRUE for a progress indicator.
+afr_cont <- cartogram_cont(afr, weight = "pop_est",
+                            itermax = 5, 
+                            n_cpu = 2,
+                            show_progress = FALSE)
 
-# plot it
-tm_shape(afr_cont) + 
+# Plot the cartogram
+tm_shape(afr_cont) +
   tm_polygons("pop_est",
               fill.scale = tm_scale_intervals(style = "jenks")) +
-  tm_layout(frame = FALSE, 
+  tm_layout(frame = FALSE,
             legend.position = c("left", "bottom"))
 ```
 
 ![](man/figures/README-parallel-1.png)<!-- -->
 
+## Acknowledgements
+
+The non-contiguous area cartogram and non-overlapping circles cartogram
+functionalities include major code contributions from @rCarto and
+@neocarto.
+
+@nowosad contributed to the package by transitioning it to use the `sf`
+package and by enhancing the documentation, a task further supported by
+documentation improvements from @oliveroy.
+
+The functionality to utilize multiple CPU cores was contributed by
+@e-kotov.
+
 ## References
+
+This package implements algorithms based on the following seminal works:
 
 - Dorling, D. (1996). Area Cartograms: Their Use and Creation. In
   Concepts and Techniques in Modern Geography (CATMOG), 59.
