@@ -11,7 +11,7 @@
 #' prevents any movement. A weight of 1 gives the default movement distance. A 
 #' single value can be supplied for uniform weights. A vector with length less 
 #' than the number of circles will be silently extended by repeating the final 
-#' value. Any values outside the range [0, 1] will be clamped to 0 or 1.
+#' value. Any values outside the range \[0, 1\] will be clamped to 0 or 1.
 #' @param itermax Maximum iterations for the cartogram transformation. 
 #' @return Non overlaping proportional circles of the same class as x.
 #' @export
