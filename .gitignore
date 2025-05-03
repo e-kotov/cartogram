@@ -46,3 +46,4 @@ private
 .config
 .local
 .vscode
+.DS_Store
