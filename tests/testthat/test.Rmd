@@ -21,6 +21,9 @@ afr <- st_transform(afr, 3395)
 afr_cont <- cartogram_cont(afr, weight = "pop_est", itermax = 5)
 
 # plot it
-tm_shape(afr_cont) + tm_polygons("pop_est", style = "jenks") +
-  tm_layout(frame = FALSE, legend.position = c("left", "bottom"))
+tm_shape(afr_cont) + 
+  tm_polygons("pop_est", 
+            fill.scale = tm_scale_intervals(style = "jenks")) +
+  tm_layout(frame = FALSE, 
+            legend.position = c("left", "bottom"))
 ```
