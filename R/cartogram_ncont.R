@@ -207,7 +207,6 @@ cartogram_ncont.sf <- function(
   wArea <- k * v * (ms / mv)
   spdf$r <- as.numeric(sqrt(wArea / surf))
   spdf$r[spdf$r == 0] <- 0.001 # don't shrink polygons to zero area
-  n <- nrow(spdf)
   crs <- st_crs(spdf) # save crs
 
   if (multithreadded == TRUE) {

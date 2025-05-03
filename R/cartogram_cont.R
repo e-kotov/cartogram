@@ -258,7 +258,6 @@ cartogram_cont.sf <- function(x, weight, itermax = 15, maxSizeError = 1.0001,
 
   # setup for single-threaded progress bar
   if (show_progress && !multithreadded) {
-    total_steps <- itermax * nrow(x)
     step <- 0
     bar_width <- 40
   }
