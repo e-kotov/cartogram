@@ -12,7 +12,7 @@ cartogram_assert_package <- function(...) {
   if (rlang::is_installed(...)) {
     return(TRUE)
   }
-  
+
   withRestarts(
     tryCatch(
       rlang::check_installed(...),
@@ -28,6 +28,6 @@ cartogram_assert_package <- function(...) {
       stop(cnd)  # Re-throw the error
     }
   )
-  
+
   rlang::is_installed(...)
 }

@@ -90,7 +90,7 @@ nc_utm <- st_transform(nc, 26916)
 # Create cartogram
 nc_utm_carto <- cartogram_cont(nc_utm, weight = "BIR74", itermax = 5)
 
-# Plot 
+# Plot
 par(mfrow=c(2,1))
 plot(nc[,"BIR74"], main="original", key.pos = NULL, reset = FALSE)
 plot(nc_utm_carto[,"BIR74"], main="distorted", key.pos = NULL, reset = FALSE)
@@ -111,7 +111,7 @@ nc_utm <- st_transform(nc, 26916)
 nc_utm_carto <- cartogram_cont(nc_utm, weight = "BIR74", itermax = 5,
 n_cpu = 2)
 
-# Plot 
+# Plot
 par(mfrow=c(2,1))
 plot(nc[,"BIR74"], main="original", key.pos = NULL, reset = FALSE)
 plot(nc_utm_carto[,"BIR74"], main="distorted", key.pos = NULL, reset = FALSE)
@@ -141,7 +141,7 @@ nc_utm_carto <- cartogram_cont(nc_utm, weight = "BIR74", itermax = 5)
 # Shutdown the R processes that were created by the future plan
 future::plan(future::sequential)
 
-# Plot 
+# Plot
 par(mfrow=c(2,1))
 plot(nc[,"BIR74"], main="original", key.pos = NULL, reset = FALSE)
 plot(nc_utm_carto[,"BIR74"], main="distorted", key.pos = NULL, reset = FALSE)

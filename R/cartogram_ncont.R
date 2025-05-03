@@ -22,7 +22,7 @@
 #' @param x a polygon or multiplogyon sf object
 #' @param weight Name of the weighting variable in x
 #' @param k Factor expansion for the unit with the greater value
-#' @param inplace If TRUE, each polygon is modified in its original place, 
+#' @param inplace If TRUE, each polygon is modified in its original place,
 #' if FALSE multi-polygons are centered on their initial centroid
 #' @param n_cpu Number of cores to use. Defaults to "respect_future_plan". Available options are:
 #' * "respect_future_plan" - By default, the function will run on a single core, unless the user specifies the number of cores using \code{\link[future]{plan}} (e.g. `future::plan(future::multisession, workers = 4)`) before running the `cartogram_ncont` function.
@@ -46,13 +46,13 @@
 #'# Create cartogram
 #'nc_utm_carto <- cartogram_ncont(nc_utm, weight = "BIR74")
 #'
-#'# Plot 
+#'# Plot
 #'par(mfrow=c(2,1))
 #'plot(nc[,"BIR74"], main="original", key.pos = NULL, reset = FALSE)
 #'plot(st_geometry(nc_utm), main="distorted", reset = FALSE)
 #'plot(nc_utm_carto[,"BIR74"], add =TRUE)
 #'
-#' 
+#'
 #'# ========= Advanced example 1 =========
 #'# Faster cartogram using multiple CPU cores
 #'# using n_cpu parameter
@@ -68,13 +68,13 @@
 #'# Create cartogram using 2 CPU cores on local machine
 #'nc_utm_carto <- cartogram_ncont(nc_utm, weight = "BIR74", n_cpu = 2)
 #'
-#'# Plot 
+#'# Plot
 #'par(mfrow=c(2,1))
 #'plot(nc[,"BIR74"], main="original", key.pos = NULL, reset = FALSE)
 #'plot(st_geometry(nc_utm), main="distorted", reset = FALSE)
 #'plot(nc_utm_carto[,"BIR74"], add =TRUE)
-#' 
-#' 
+#'
+#'
 #'# ========= Advanced example 2 =========
 #'# Faster cartogram using multiple CPU cores
 #'# using future package plan
@@ -91,21 +91,21 @@
 #'# Set the future plan with 2 CPU local cores
 #'# You can of course use any other plans, not just multisession
 #'future::plan(future::multisession, workers = 2)
-#' 
+#'
 #'# Create cartogram with multiple CPU cores
 #'# The cartogram_cont() will respect the plan set above
 #'nc_utm_carto <- cartogram_ncont(nc_utm, weight = "BIR74")
-#' 
+#'
 #'# Shutdown the R processes that were created by the future plan
-#'future::plan(future::sequential) 
-#' 
-#'# Plot 
+#'future::plan(future::sequential)
+#'
+#'# Plot
 #'par(mfrow=c(2,1))
-#'plot(nc[,"BIR74"], main="original", key.pos = NULL, reset = FALSE)
-#'plot(st_geometry(nc_utm), main="distorted", reset = FALSE)
-#'plot(nc_utm_carto[,"BIR74"], add =TRUE)
-#' 
-#' 
+#'plot(nc[,"BIR74"], main = "original", key.pos = NULL, reset = FALSE)
+#'plot(st_geometry(nc_utm), main = "distorted", reset = FALSE)
+#'plot(nc_utm_carto[,"BIR74"], add = TRUE)
+#'
+#'
 #' @references Olson, J. M. (1976). Noncontiguous Area Cartograms. In The Professional Geographer, 28(4), 371-380.
 cartogram_ncont <- function(
   x,
@@ -114,7 +114,7 @@ cartogram_ncont <- function(
   inplace = TRUE,
   n_cpu = getOption("cartogram_n_cpu", "respect_future_plan"),
   show_progress = getOption("cartogram.show_progress", TRUE)
-){
+) {
   UseMethod("cartogram_ncont")
 }
 
@@ -126,8 +126,8 @@ cartogram_ncont <- function(
 #' @inheritDotParams cartogram_ncont -x
 #' @keywords internal
 nc_cartogram <- function(shp, ...) {
-  message("\nPlease use cartogram_ncont() instead of nc_cartogram().\n", call. = F)
-  cartogram_ncont(x=shp, ...)
+  message("\nPlease use cartogram_ncont() instead of nc_cartogram().\n", call. = FALSE)
+  cartogram_ncont(x = shp, ...)
 }
 
 #' @rdname cartogram_ncont
@@ -140,7 +140,7 @@ cartogram_ncont.SpatialPolygonsDataFrame <- function(
   inplace = TRUE,
   n_cpu = getOption("cartogram_n_cpu", "respect_future_plan"),
   show_progress = getOption("cartogram.show_progress", TRUE)
-){
+) {
   as(cartogram_ncont.sf(sf::st_as_sf(x), weight, k = k, inplace = inplace, n_cpu = n_cpu, show_progress = show_progress), 'Spatial')
 }
 
@@ -156,18 +156,18 @@ cartogram_ncont.sf <- function(
   n_cpu = getOption("cartogram_n_cpu", "respect_future_plan"),
   show_progress = getOption("cartogram.show_progress", TRUE)
 ) {
-  
+
   if (isTRUE(sf::st_is_longlat(x))) {
-    stop('Using an unprojected map. This function does not give correct centroids and distances for longitude/latitude data:\nUse "st_transform()" to transform coordinates to another projection.', call. = F)
+    stop('Using an unprojected map. This function does not give correct centroids and distances for longitude/latitude data:\nUse "st_transform()" to transform coordinates to another projection.', call. = FALSE)
   }
 
-  if(length(n_cpu) > 1) {
+  if (length(n_cpu) > 1) {
     stop('Invalid value for `n_cpu`. Use "respect_future_plan", "auto", or a numeric value.', call. = FALSE)
   }
 
-  if (is.numeric(n_cpu) & n_cpu == 1) {
+  if (is.numeric(n_cpu) && n_cpu == 1) {
     multithreadded <- FALSE
-  } else if (is.numeric(n_cpu) & n_cpu > 1) {
+  } else if (is.numeric(n_cpu) && n_cpu > 1) {
     cartogram_assert_package(c("future", "future.apply"))
     with(future::plan(future::multisession, workers = n_cpu), local = TRUE)
     multithreadded <- TRUE
@@ -183,7 +183,7 @@ cartogram_ncont.sf <- function(
     }
   } else if (n_cpu == "respect_future_plan") {
     if (rlang::is_installed("future")) {
-      if ( is(future::plan(), "sequential") ) {
+      if (is(future::plan(), "sequential")) {
         multithreadded <- FALSE
       } else {
         multithreadded <- TRUE
@@ -197,21 +197,21 @@ cartogram_ncont.sf <- function(
   }
 
   var <- weight
-  spdf <- x[!is.na(x[, var, drop=T]),]
-  
+  spdf <- x[!is.na(x[, var, drop = TRUE]), ]
+
   # size
-  surf <- as.numeric(sf::st_area(spdf, by_element=T))
-  v <- spdf[, var, drop=T] 
+  surf <- as.numeric(sf::st_area(spdf, by_element = TRUE))
+  v <- spdf[, var, drop = TRUE]
   mv <- max(v)
-  ms <- surf[v==mv]
+  ms <- surf[v == mv]
   wArea <- k * v * (ms / mv)
-  spdf$r <- as.numeric(sqrt( wArea/ surf))
+  spdf$r <- as.numeric(sqrt(wArea / surf))
   spdf$r[spdf$r == 0] <- 0.001 # don't shrink polygons to zero area
   n <- nrow(spdf)
   crs <- st_crs(spdf) # save crs
-  
+
   if (multithreadded == TRUE) {
-    cartogram_assert_package(c("future.apply"))
+    cartogram_assert_package("future.apply")
     # handle show_progress
     if (show_progress && interactive()) {
       cartogram_assert_package("progressr")
@@ -224,7 +224,7 @@ cartogram_ncont.sf <- function(
     } else {
       p <- function(...) NULL # don't show progress
     }
-    
+
     spdf_geometry_list <- future.apply::future_lapply(
       X = seq_len(nrow(spdf)),
       FUN = function(i) {
@@ -256,7 +256,7 @@ cartogram_ncont.sf <- function(
         )
       }
     )
-    
+
     if (interactive() && show_progress) {
       close(pb)
     }
@@ -269,18 +269,18 @@ cartogram_ncont.sf <- function(
 
 #' @importFrom sf st_geometry st_centroid st_cast st_union
 #' @keywords internal
-rescalePoly.sf <- function(p, r = 1, inplace = T){
-  
+rescalePoly.sf <- function(p, r = 1, inplace = TRUE) {
+
   co <- sf::st_geometry(p)
-  
-  if(inplace) {
+
+  if (inplace) {
     cntr <- sf::st_centroid(co)
     ps <- (co - cntr) * r + cntr
   } else {
     cop <- sf::st_cast(co, "POLYGON")
-    cntrd = sf::st_centroid(cop) 
+    cntrd <- sf::st_centroid(cop)
     ps <- sf::st_union((cop - cntrd) * r + cntrd)
   }
-  
+
   return(ps)
 }

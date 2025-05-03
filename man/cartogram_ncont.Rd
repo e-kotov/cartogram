@@ -71,7 +71,7 @@ nc_utm <- st_transform(nc, 26916)
 # Create cartogram
 nc_utm_carto <- cartogram_ncont(nc_utm, weight = "BIR74")
 
-# Plot 
+# Plot
 par(mfrow=c(2,1))
 plot(nc[,"BIR74"], main="original", key.pos = NULL, reset = FALSE)
 plot(st_geometry(nc_utm), main="distorted", reset = FALSE)
@@ -92,7 +92,7 @@ nc_utm <- st_transform(nc, 26916)
 # Create cartogram using 2 CPU cores on local machine
 nc_utm_carto <- cartogram_ncont(nc_utm, weight = "BIR74", n_cpu = 2)
 
-# Plot 
+# Plot
 par(mfrow=c(2,1))
 plot(nc[,"BIR74"], main="original", key.pos = NULL, reset = FALSE)
 plot(st_geometry(nc_utm), main="distorted", reset = FALSE)
@@ -119,13 +119,13 @@ future::plan(future::multisession, workers = 2)
 nc_utm_carto <- cartogram_ncont(nc_utm, weight = "BIR74")
 
 # Shutdown the R processes that were created by the future plan
-future::plan(future::sequential) 
+future::plan(future::sequential)
 
-# Plot 
+# Plot
 par(mfrow=c(2,1))
-plot(nc[,"BIR74"], main="original", key.pos = NULL, reset = FALSE)
-plot(st_geometry(nc_utm), main="distorted", reset = FALSE)
-plot(nc_utm_carto[,"BIR74"], add =TRUE)
+plot(nc[,"BIR74"], main = "original", key.pos = NULL, reset = FALSE)
+plot(st_geometry(nc_utm), main = "distorted", reset = FALSE)
+plot(nc_utm_carto[,"BIR74"], add = TRUE)
 
 
 }

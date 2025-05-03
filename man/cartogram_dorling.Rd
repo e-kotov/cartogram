@@ -48,10 +48,10 @@ nc_utm <- st_transform(nc, 26916)
 # Create cartogram
 nc_utm_carto <- cartogram_dorling(nc_utm, weight = "BIR74")
 
-# Plot 
-par(mfrow=c(2,1))
+# Plot
+par(mfrow = c(2,1))
 plot(nc[,"BIR74"], main="original", key.pos = NULL, reset = FALSE)
-plot(nc_utm_carto[,"BIR74"], main="distorted", key.pos = NULL, reset = FALSE)
+plot(nc_utm_carto[, "BIR74"], main="distorted", key.pos = NULL, reset = FALSE)
 
 }
 \references{
