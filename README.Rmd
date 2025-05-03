@@ -57,8 +57,11 @@ afr <- st_transform(afr, 3395)
 afr_cont <- cartogram_cont(afr, "pop_est", itermax = 5)
 
 # plot it
-tm_shape(afr_cont) + tm_polygons("pop_est", style = "jenks") +
-  tm_layout(frame = FALSE, legend.position = c("left", "bottom"))
+tm_shape(afr_cont) + 
+  tm_polygons("pop_est", 
+              fill.scale = tm_scale_intervals(style = "jenks")) +
+  tm_layout(frame = FALSE, 
+            legend.position = c("left", "bottom"))
 ```
 
 ### Non-contiguous Area Cartogram
@@ -70,9 +73,13 @@ Many thanks to @rCarto and @neocarto for contributing the code!
 afr_ncont <- cartogram_ncont(afr, "pop_est")
 
 # plot it
-tm_shape(afr) + tm_borders() +
-  tm_shape(afr_ncont) + tm_polygons("pop_est", style = "jenks") +
-  tm_layout(frame = FALSE, legend.position = c("left", "bottom"))
+tm_shape(afr) + 
+  tm_borders() +
+  tm_shape(afr_ncont) + 
+  tm_polygons("pop_est",
+              fill.scale = tm_scale_intervals(style = "jenks")) +
+  tm_layout(frame = FALSE, 
+            legend.position = c("left", "bottom"))
 ```
 
 ### Non-Overlapping Circles Cartogram
@@ -84,9 +91,13 @@ Many thanks to @rCarto for contributing the code!
 afr_dorling <- cartogram_dorling(afr, "pop_est")
 
 # plot it
-tm_shape(afr) + tm_borders() +
-  tm_shape(afr_dorling) + tm_polygons("pop_est", style = "jenks") +
-  tm_layout(frame = FALSE, legend.position = c("left", "bottom"))
+tm_shape(afr) + 
+  tm_borders() +
+  tm_shape(afr_dorling) + 
+  tm_polygons("pop_est",
+              fill.scale = tm_scale_intervals(style = "jenks")) +
+  tm_layout(frame = FALSE,
+            legend.position = c("left", "bottom"))
 ```
 
 ## Use multiple CPU cores
@@ -116,8 +127,11 @@ afr_cont <- cartogram_cont(afr, weight = "pop_est",
                            show_progress = FALSE)
 
 # plot it
-tm_shape(afr_cont) + tm_polygons("pop_est", style = "jenks") +
-  tm_layout(frame = FALSE, legend.position = c("left", "bottom"))
+tm_shape(afr_cont) + 
+  tm_polygons("pop_est",
+              fill.scale = tm_scale_intervals(style = "jenks")) +
+  tm_layout(frame = FALSE, 
+            legend.position = c("left", "bottom"))
 ```
 
 ## References
