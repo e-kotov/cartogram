@@ -22,10 +22,10 @@
 #' @param weight Name of the weighting variable in x
 #' @param itermax Maximum iterations for the cartogram transformation, if maxSizeError ist not reached
 #' @param maxSizeError Stop if meanSizeError is smaller than maxSizeError
-#' @param prepare Weighting values are adjusted to reach convergence much earlier. Possible methods are 
-#' "adjust", adjust values to restrict the mass vector to the quantiles defined by threshold and 1-threshold (default),
-#' "remove", remove features with values lower than quantile at threshold,
-#' "none", don't adjust weighting values
+#' @param prepare Weighting values are adjusted to reach convergence much earlier. Possible methods are: 
+#' * "adjust", adjust values to restrict the mass vector to the quantiles defined by threshold and 1-threshold (default),
+#' * "remove", remove features with values lower than quantile at threshold,
+#' * "none", don't adjust weighting values
 #' @param threshold "auto" or a threshold value between 0 and 1. With “auto”, the value is 0.05 or, if the proportion of zeros in the weight is greater than 0.05, the value is adjusted accordingly.
 #' @param verbose print meanSizeError on each iteration
 #' @param n_cpu Number of cores to use. Defaults to "respect_future_plan". Available options are:

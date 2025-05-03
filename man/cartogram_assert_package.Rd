@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{cartogram_assert_package}
 \alias{cartogram_assert_package}
-\title{Checks if a package is installed and *informs* the user if not}
+\title{Checks if a package is installed and \emph{informs} the user if not}
 \usage{
 cartogram_assert_package(...)
 }
@@ -33,8 +33,8 @@ mentioned in error messages as the source of the error. See the
   }}
 }
 \description{
-This is wrapper around [rlang::check_installed];
-instead of erroring out if the check fails it returns `FALSE`.
-However, unlike [rlang::is_installed], it emits a message to the user.
+This is wrapper around \link[rlang:is_installed]{rlang::check_installed};
+instead of erroring out if the check fails it returns \code{FALSE}.
+However, unlike \link[rlang:is_installed]{rlang::is_installed}, it emits a message to the user.
 }
 \keyword{internal}
