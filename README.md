@@ -4,10 +4,10 @@ cartogram: Create Cartograms with R
 <!-- badges: start -->
 
 [![CRAN
-status](http://www.r-pkg.org/badges/version/cartogram)](https://cran.r-project.org/package=cartogram)
+status](https://www.r-pkg.org/badges/version/cartogram)](https://cran.r-project.org/package=cartogram)
 [![R-CMD-check](https://github.com/sjewo/cartogram/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/sjewo/cartogram/actions/workflows/R-CMD-check.yaml)
 [![CRAN
-Downloads](http://cranlogs.r-pkg.org/badges/cartogram)](https://cran.r-project.org/package=cartogram)
+Downloads](https://cranlogs.r-pkg.org/badges/cartogram)](https://cran.r-project.org/package=cartogram)
 <!-- badges: end -->
 
 Construct a continuous area cartogram by a rubber sheet distortion
@@ -23,10 +23,10 @@ install.packages("cartogram")
 ```
 
 To upgrade to the latest development version of `cartogram`, install the
-package `devtools` and run the following command:
+package `remotes` and run the following command:
 
 ``` r
-devtools::install_github("sjewo/cartogram")
+remotes::install_github("sjewo/cartogram")
 ```
 
 ## Examples
@@ -36,7 +36,7 @@ devtools::install_github("sjewo/cartogram")
 ``` r
 library(cartogram)
 library(sf)
-#> Linking to GEOS 3.11.0, GDAL 3.5.3, PROJ 9.1.0; sf_use_s2() is TRUE
+#> Linking to GEOS 3.13.0, GDAL 3.8.5, PROJ 9.5.1; sf_use_s2() is TRUE
 library(tmap)
 
 data("World")
@@ -49,10 +49,14 @@ afr <- st_transform(afr, 3395)
 
 # construct cartogram
 afr_cont <- cartogram_cont(afr, "pop_est", itermax = 5)
+#>   |                                                                              |                                                                      |   0%  |                                                                              |==============                                                        |  20%  |                                                                              |============================                                          |  40%  |                                                                              |==========================================                            |  60%  |                                                                              |========================================================              |  80%  |                                                                              |======================================================================| 100%
 
 # plot it
-tm_shape(afr_cont) + tm_polygons("pop_est", style = "jenks") +
-  tm_layout(frame = FALSE, legend.position = c("left", "bottom"))
+tm_shape(afr_cont) + 
+  tm_polygons("pop_est", 
+              fill.scale = tm_scale_intervals(style = "jenks")) +
+  tm_layout(frame = FALSE, 
+            legend.position = c("left", "bottom"))
 ```
 
 ![](man/figures/README-cont-1.png)<!-- -->
@@ -64,11 +68,16 @@ Many thanks to @rCarto and @neocarto for contributing the code!
 ``` r
 # construct cartogram
 afr_ncont <- cartogram_ncont(afr, "pop_est")
+#>   |                                                                              |                                                                      |   0%  |                                                                              |=                                                                     |   2%  |                                                                              |===                                                                   |   4%  |                                                                              |====                                                                  |   6%  |                                                                              |=====                                                                 |   8%  |                                                                              |=======                                                               |  10%  |                                                                              |========                                                              |  12%  |                                                                              |==========                                                            |  14%  |                                                                              |===========                                                           |  16%  |                                                                              |============                                                          |  18%  |                                                                              |==============                                                        |  20%  |                                                                              |===============                                                       |  22%  |                                                                              |================                                                      |  24%  |                                                                              |==================                                                    |  25%  |                                                                              |===================                                                   |  27%  |                                                                              |=====================                                                 |  29%  |                                                                              |======================                                                |  31%  |                                                                              |=======================                                               |  33%  |                                                                              |=========================                                             |  35%  |                                                                              |==========================                                            |  37%  |                                                                              |===========================                                           |  39%  |                                                                              |=============================                                         |  41%  |                                                                              |==============================                                        |  43%  |                                                                              |================================                                      |  45%  |                                                                              |=================================                                     |  47%  |                                                                              |==================================                                    |  49%  |                                                                              |====================================                                  |  51%  |                                                                              |=====================================                                 |  53%  |                                                                              |======================================                                |  55%  |                                                                              |========================================                              |  57%  |                                                                              |=========================================                             |  59%  |                                                                              |===========================================                           |  61%  |                                                                              |============================================                          |  63%  |                                                                              |=============================================                         |  65%  |                                                                              |===============================================                       |  67%  |                                                                              |================================================                      |  69%  |                                                                              |=================================================                     |  71%  |                                                                              |===================================================                   |  73%  |                                                                              |====================================================                  |  75%  |                                                                              |======================================================                |  76%  |                                                                              |=======================================================               |  78%  |                                                                              |========================================================              |  80%  |                                                                              |==========================================================            |  82%  |                                                                              |===========================================================           |  84%  |                                                                              |============================================================          |  86%  |                                                                              |==============================================================        |  88%  |                                                                              |===============================================================       |  90%  |                                                                              |=================================================================     |  92%  |                                                                              |==================================================================    |  94%  |                                                                              |===================================================================   |  96%  |                                                                              |===================================================================== |  98%  |                                                                              |======================================================================| 100%
 
 # plot it
-tm_shape(afr) + tm_borders() +
-  tm_shape(afr_ncont) + tm_polygons("pop_est", style = "jenks") +
-  tm_layout(frame = FALSE, legend.position = c("left", "bottom"))
+tm_shape(afr) + 
+  tm_borders() +
+  tm_shape(afr_ncont) + 
+  tm_polygons("pop_est",
+              fill.scale = tm_scale_intervals(style = "jenks")) +
+  tm_layout(frame = FALSE, 
+            legend.position = c("left", "bottom"))
 ```
 
 ![](man/figures/README-ncont-1.png)<!-- -->
@@ -82,12 +91,53 @@ Many thanks to @rCarto for contributing the code!
 afr_dorling <- cartogram_dorling(afr, "pop_est")
 
 # plot it
-tm_shape(afr) + tm_borders() +
-  tm_shape(afr_dorling) + tm_polygons("pop_est", style = "jenks") +
-  tm_layout(frame = FALSE, legend.position = c("left", "bottom"))
+tm_shape(afr) + 
+  tm_borders() +
+  tm_shape(afr_dorling) + 
+  tm_polygons("pop_est",
+              fill.scale = tm_scale_intervals(style = "jenks")) +
+  tm_layout(frame = FALSE,
+            legend.position = c("left", "bottom"))
 ```
 
 ![](man/figures/README-dorling-1.png)<!-- -->
+
+## Use multiple CPU cores
+
+Many thanks to @e-kotov for contributing the code!
+
+``` r
+library(cartogram)
+library(sf)
+library(tmap)
+
+library(future)
+library(future.apply)
+library(parallelly)
+library(progressr)
+
+data("World")
+
+# keep only the african continent
+afr <- World[World$continent == "Africa", ]
+
+# project the map
+afr <- st_transform(afr, 3395)
+
+# Create cartogram using 2 CPU cores on local machine
+afr_cont <- cartogram_cont(afr, weight = "pop_est", 
+                           itermax = 5, n_cpu = 2, 
+                           show_progress = FALSE)
+
+# plot it
+tm_shape(afr_cont) + 
+  tm_polygons("pop_est",
+              fill.scale = tm_scale_intervals(style = "jenks")) +
+  tm_layout(frame = FALSE, 
+            legend.position = c("left", "bottom"))
+```
+
+![](man/figures/README-parallel-1.png)<!-- -->
 
 ## References
 

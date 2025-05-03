@@ -103,7 +103,7 @@
 #'nc_utm_carto <- cartogram_cont(nc_utm, weight = "BIR74", itermax = 5)
 #'
 #'# Shutdown the R processes that were created by the future plan
-#'future::plan(future::sequential) 
+#'future::plan(future::sequential)
 #' 
 #'# Plot 
 #'par(mfrow=c(2,1))
@@ -113,8 +113,9 @@
 #'
 #' @references Dougenik, J. A., Chrisman, N. R., & Niemeyer, D. R. (1985). An Algorithm To Construct Continuous Area Cartograms. In The Professional Geographer, 37(1), 75-81.
 cartogram_cont <- function(x, weight, itermax=15, maxSizeError=1.0001,
-                      prepare="adjust", threshold="auto", verbose = FALSE,
-                      n_cpu="respect_future_plan", show_progress=TRUE) {
+                           prepare="adjust", threshold="auto", verbose = FALSE,
+                           n_cpu=getOption("cartogram_n_cpu", "respect_future_plan"), 
+                           show_progress=getOption("cartogram.show_progress", TRUE)) {
   UseMethod("cartogram_cont")
 }
 
@@ -134,19 +135,22 @@ cartogram <- function(shp, ...) {
 #' @importFrom sf st_as_sf
 #' @export
 cartogram_cont.SpatialPolygonsDataFrame <- function(x, weight, itermax=15, maxSizeError=1.0001,
-                      prepare="adjust", threshold="auto", verbose = FALSE,
-                      n_cpu="respect_future_plan", show_progress=TRUE) {
+                                                    prepare="adjust", threshold="auto", verbose = FALSE,
+                                                    n_cpu=getOption("cartogram_n_cpu", "respect_future_plan"), 
+                                                    show_progress=getOption("cartogram.show_progress", TRUE)) {
   as(cartogram_cont.sf(sf::st_as_sf(x), weight, itermax=itermax, maxSizeError=maxSizeError,
-                    prepare=prepare, threshold=threshold, verbose=verbose, n_cpu=n_cpu, show_progress=show_progress), 'Spatial')
-
+                       prepare=prepare, threshold=threshold, verbose=verbose, n_cpu=n_cpu, show_progress=show_progress), 'Spatial')
+  
 }
 
 #' @rdname cartogram_cont
 #' @importFrom sf st_area st_geometry st_geometry_type st_centroid st_crs st_coordinates st_buffer st_is_longlat
 #' @export
 cartogram_cont.sf <- function(x, weight, itermax = 15, maxSizeError = 1.0001,
-                              prepare = "adjust", threshold = "auto", verbose = FALSE, n_cpu="respect_future_plan", show_progress=TRUE) {
-
+                              prepare = "adjust", threshold = "auto", verbose = FALSE, 
+                              n_cpu=getOption("cartogram_n_cpu", "respect_future_plan"), 
+                              show_progress=getOption("cartogram.show_progress", TRUE)) {
+  
   if (isTRUE(sf::st_is_longlat(x))) {
     stop('Using an unprojected map. This function does not give correct centroids and distances for longitude/latitude data:\nUse "st_transform()" to transform coordinates to another projection.', call. = F)
   }
@@ -160,14 +164,13 @@ cartogram_cont.sf <- function(x, weight, itermax = 15, maxSizeError = 1.0001,
   if(!(weight %in% names(x))) {
     stop('There is no variable "', weight, '" in object "', deparse(substitute(x)), '".', call. = FALSE)
   }
-
+  
   # Determine if we should use multithreading
   if (is.numeric(n_cpu) & n_cpu == 1) {
     multithreadded <- FALSE
   } else if (is.numeric(n_cpu) & n_cpu > 1) {
     cartogram_assert_package(c("future", "future.apply"))
-    original_plan <- future::plan(future::multisession, workers = n_cpu)
-    on.exit(future::plan(original_plan), add = TRUE)
+    with(future::plan(future::multisession, workers = n_cpu), local = TRUE)
     multithreadded <- TRUE
   } else if (n_cpu == "auto") {
     cartogram_assert_package("parallelly")
@@ -176,8 +179,7 @@ cartogram_cont.sf <- function(x, weight, itermax = 15, maxSizeError = 1.0001,
       multithreadded <- FALSE
     } else if (n_cpu > 1) {
       cartogram_assert_package(c("future", "future.apply"))
-      original_plan <- future::plan(future::multisession, workers = n_cpu)
-      on.exit(future::plan(original_plan), add = TRUE)
+      with(future::plan(future::multisession, workers = n_cpu), local = TRUE)
       multithreadded <- TRUE
       
       if(verbose) {
@@ -256,6 +258,26 @@ cartogram_cont.sf <- function(x, weight, itermax = 15, maxSizeError = 1.0001,
   
   x.iter <- x
   
+  # setup for single-threaded progress bar
+  if (show_progress && !multithreadded) {
+    total_steps <- itermax * nrow(x)
+    step <- 0
+    bar_width <- 40
+  }
+
+  # setup for multi-threaded progress bar
+  if (show_progress && multithreadded && interactive()) {
+    cartogram_assert_package("progressr")
+    old_handlers <- progressr::handlers("progress")
+    on.exit(progressr::handlers(old_handlers), add = TRUE)
+    global_handlers_status <- progressr::handlers(global = NA)
+    progressr::handlers(global = TRUE)
+    on.exit(progressr::handlers(global = global_handlers_status), add = FALSE)
+    p <- progressr::progressor(steps = itermax * nrow(x))
+  } else {
+    p <- function(...) NULL
+  }
+
   # iterate until itermax is reached
   for (z in 1:itermax) {
     # break if mean Sizer Error is less than maxSizeError
@@ -290,37 +312,40 @@ cartogram_cont.sf <- function(x, weight, itermax = 15, maxSizeError = 1.0001,
     
     # Process polygons either in parallel or sequentially
     if (multithreadded) {
-      if (show_progress) {
-        cartogram_assert_package("progressr")
-        progressr::handlers(global = TRUE)
-        progressr::handlers("progress")
-        p <- progressr::progressor(along = seq_len(nrow(x.iter)))
-      } else {
-        p <- function(...) NULL
-      }
-      
-      x.iter_geom <- future.apply::future_lapply(
-        seq_len(nrow(x.iter)),
-        function(i) {
-          if (show_progress) p(sprintf("Processing polygon %d in iteration %d", i, z))
-          process_polygon(x.iter_geom[[i]], centroids, mass, radius, forceReductionFactor)
-        },
-        future.seed = TRUE
-      )
+        x.iter_geom <- future.apply::future_lapply(
+          seq_len(nrow(x.iter)),
+          function(i) {
+            if (interactive() && show_progress) {
+              p(sprintf("[Iter.:%d/%d] Polygon %d", z, itermax, i))
+            }
+            process_polygon(x.iter_geom[[i]], centroids, mass, radius, forceReductionFactor)
+          },
+          future.seed = TRUE
+        )
+        # in case we used the local in-fuction plan instead of externally future plan set by user, shutdown the workers
+        if (n_cpu != "respect_future_plan") {
+          future::plan(future::sequential)
+        }
     } else {
-      if (show_progress) {
-        pb <- utils::txtProgressBar(min = 0, max = nrow(x.iter), style = 3)
-      }
-      
       x.iter_geom <- lapply(
         seq_len(nrow(x.iter)),
         function(i) {
-          if (show_progress) utils::setTxtProgressBar(pb, i)
+          if (interactive() && show_progress && !multithreadded) {
+            step <<- step + 1
+            # calculate progress
+            progress <- step / (itermax * nrow(x))
+            filled <- floor(progress * bar_width)
+            empty <- bar_width - filled
+            bar <- paste0("[Iter.:", z, "/", itermax, "] ",
+                          paste0(rep("=", filled), collapse = ""),
+                          paste0(rep(".", empty), collapse = ""),
+                          sprintf(" %3d%%", floor(progress * 100)))
+            cat("\r", bar)
+            utils::flush.console()
+          }
           process_polygon(x.iter_geom[[i]], centroids, mass, radius, forceReductionFactor)
         }
       )
-      
-      if (show_progress) close(pb)
     }
     
     sf::st_geometry(x.iter) <- do.call(sf::st_sfc, x.iter_geom)
