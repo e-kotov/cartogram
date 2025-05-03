@@ -158,15 +158,17 @@ tm_shape(afr_cont) +
 ## Acknowledgements
 
 The non-contiguous area cartogram and non-overlapping circles cartogram
-functionalities include major code contributions from @rCarto and
-@neocarto.
+functionalities include major code contributions from
+[@rCarto](https://github.com/rCarto) and
+[@neocarto](https://github.com/neocarto).
 
-@nowosad contributed to the package by transitioning it to use the `sf`
-package and by enhancing the documentation, a task further supported by
-documentation improvements from @oliveroy.
+[@nowosad](https://github.com/nowosad) contributed to the package by
+transitioning it to use the `sf` package and by enhancing the
+documentation, a task further supported by documentation improvements
+from [@oliveroy](https://github.com/oliveroy).
 
 The functionality to utilize multiple CPU cores was contributed by
-@e-kotov.
+[@e-kotov](https://github.com/e-kotov).
 
 ## References
 
