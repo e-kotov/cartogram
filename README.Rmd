@@ -112,6 +112,7 @@ library(tmap)
 library(future)
 library(future.apply)
 library(parallelly)
+library(progressr)
 
 data("World")
 
