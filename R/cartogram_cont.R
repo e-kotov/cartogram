@@ -32,7 +32,7 @@
 #' * "respect_future_plan" - By default, the function will run on a single core, unless the user specifies the number of cores using \code{\link[future]{plan}} (e.g. `future::plan(future::multisession, workers = 4)`) before running the `cartogram_cont` function.
 #' * "auto" - Use all except available cores (identified with \code{\link[parallelly]{availableCores}}) except 1, to keep the system responsive.
 #' * a `numeric` value - Use the specified number of cores. In this case `cartogram_cont` will use set the specified number of cores internally with `future::plan(future::multisession, workers = n_cpu)` and revert that back by switching the plan back to whichever plan might have been set before by the user. If only 1 core is set, the function will not require `future` and `future.apply` and will run on a single core.
-#' @param show_progress A `logical` value. If TRUE, show progress bar. Defaults to TRUE.
+#' @param show_progress A `logical` value. If TRUE, show progress bar. Defaults to TRUE. In non-interactive sessions and in RMarkdown or Quarto markdown documents rendering it is overridden to FALSE to prevent printing of the progress bar into the final document.
 #' @return An object of the same class as x
 #' @export
 #' @importFrom methods is slot
@@ -151,6 +151,13 @@ cartogram_cont.sf <- function(x, weight, itermax = 15, maxSizeError = 1.0001,
                               n_cpu = getOption("cartogram_n_cpu", "respect_future_plan"),
                               show_progress = getOption("cartogram.show_progress", TRUE)) {
 
+  # when enabled, overried and disable progress bar for non-interactive sessions and knitr/rmarkdown/quarto
+  if( show_progress == TRUE){
+    is_rendering <- isTRUE(getOption("knitr.in.progress")) ||
+      isTRUE(getOption("rstudio.markdownToHTML"))
+    show_progress <- interactive() && !is_rendering
+  }
+
   if (isTRUE(sf::st_is_longlat(x))) {
     stop('Using an unprojected map. This function does not give correct centroids and distances for longitude/latitude data:\nUse "st_transform()" to transform coordinates to another projection.', call. = FALSE)
   }
@@ -263,7 +270,7 @@ cartogram_cont.sf <- function(x, weight, itermax = 15, maxSizeError = 1.0001,
   }
 
   # setup for multi-threaded progress bar
-  if (show_progress && multithreadded && interactive()) {
+  if (show_progress && multithreadded) {
     cartogram_assert_package("progressr")
     old_handlers <- progressr::handlers("progress")
     on.exit(progressr::handlers(old_handlers), add = TRUE)
@@ -323,7 +330,7 @@ cartogram_cont.sf <- function(x, weight, itermax = 15, maxSizeError = 1.0001,
       x.iter_geom <- lapply(
         seq_len(nrow(x.iter)),
         function(i) {
-          if (interactive() && show_progress && !multithreadded) {
+          if (show_progress && !multithreadded) {
             step <<- step + 1
             # calculate progress
             progress <- step / (itermax * nrow(x))
