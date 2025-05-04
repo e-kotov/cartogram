@@ -19,12 +19,12 @@ cartogram_dorling(x, weight, k = 5, m_weight = 1, itermax = 1000)
 
 \item{k}{Share of the bounding box of x filled by the larger circle}
 
-\item{m_weight}{Circles' movements weights. An optional vector of numeric weights 
-(0 to 1 inclusive) to 
-apply to the distance each circle moves during pair-repulsion. A weight of 0 
-prevents any movement. A weight of 1 gives the default movement distance. A 
-single value can be supplied for uniform weights. A vector with length less 
-than the number of circles will be silently extended by repeating the final 
+\item{m_weight}{Circles' movements weights. An optional vector of numeric weights
+(0 to 1 inclusive) to
+apply to the distance each circle moves during pair-repulsion. A weight of 0
+prevents any movement. A weight of 1 gives the default movement distance. A
+single value can be supplied for uniform weights. A vector with length less
+than the number of circles will be silently extended by repeating the final
 value. Any values outside the range [0, 1] will be clamped to 0 or 1.}
 
 \item{itermax}{Maximum iterations for the cartogram transformation.}
@@ -33,7 +33,7 @@ value. Any values outside the range [0, 1] will be clamped to 0 or 1.}
 Non overlaping proportional circles of the same class as x.
 }
 \description{
-Construct a cartogram which represents each geographic region 
+Construct a cartogram which represents each geographic region
 as non-overlapping circles (Dorling 1996).
 }
 \examples{
@@ -48,10 +48,10 @@ nc_utm <- st_transform(nc, 26916)
 # Create cartogram
 nc_utm_carto <- cartogram_dorling(nc_utm, weight = "BIR74")
 
-# Plot 
-par(mfrow=c(2,1))
+# Plot
+par(mfrow = c(2,1))
 plot(nc[,"BIR74"], main="original", key.pos = NULL, reset = FALSE)
-plot(nc_utm_carto[,"BIR74"], main="distorted", key.pos = NULL, reset = FALSE)
+plot(nc_utm_carto[, "BIR74"], main="distorted", key.pos = NULL, reset = FALSE)
 
 }
 \references{

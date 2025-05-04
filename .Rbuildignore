@@ -8,3 +8,9 @@
 ^pkgdown$
 ^\.github$
 ^private$
+^.cache$
+^.config$
+^.local$
+^.vscode$
+^.DS_Store$
+^.lintr$

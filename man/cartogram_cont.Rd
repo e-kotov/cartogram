@@ -14,8 +14,8 @@ cartogram_cont(
   prepare = "adjust",
   threshold = "auto",
   verbose = FALSE,
-  n_cpu = "respect_future_plan",
-  show_progress = TRUE
+  n_cpu = getOption("cartogram_n_cpu", "respect_future_plan"),
+  show_progress = getOption("cartogram.show_progress", TRUE)
 )
 
 \method{cartogram_cont}{SpatialPolygonsDataFrame}(
@@ -26,8 +26,8 @@ cartogram_cont(
   prepare = "adjust",
   threshold = "auto",
   verbose = FALSE,
-  n_cpu = "respect_future_plan",
-  show_progress = TRUE
+  n_cpu = getOption("cartogram_n_cpu", "respect_future_plan"),
+  show_progress = getOption("cartogram.show_progress", TRUE)
 )
 
 \method{cartogram_cont}{sf}(
@@ -38,8 +38,8 @@ cartogram_cont(
   prepare = "adjust",
   threshold = "auto",
   verbose = FALSE,
-  n_cpu = "respect_future_plan",
-  show_progress = TRUE
+  n_cpu = getOption("cartogram_n_cpu", "respect_future_plan"),
+  show_progress = getOption("cartogram.show_progress", TRUE)
 )
 }
 \arguments{
@@ -51,21 +51,25 @@ cartogram_cont(
 
 \item{maxSizeError}{Stop if meanSizeError is smaller than maxSizeError}
 
-\item{prepare}{Weighting values are adjusted to reach convergence much earlier. Possible methods are 
-"adjust", adjust values to restrict the mass vector to the quantiles defined by threshold and 1-threshold (default),
-"remove", remove features with values lower than quantile at threshold,
-"none", don't adjust weighting values}
+\item{prepare}{Weighting values are adjusted to reach convergence much earlier. Possible methods are:
+\itemize{
+\item "adjust", adjust values to restrict the mass vector to the quantiles defined by threshold and 1-threshold (default),
+\item "remove", remove features with values lower than quantile at threshold,
+\item "none", don't adjust weighting values
+}}
 
 \item{threshold}{"auto" or a threshold value between 0 and 1. With “auto”, the value is 0.05 or, if the proportion of zeros in the weight is greater than 0.05, the value is adjusted accordingly.}
 
 \item{verbose}{print meanSizeError on each iteration}
 
 \item{n_cpu}{Number of cores to use. Defaults to "respect_future_plan". Available options are:
-* "respect_future_plan" - By default, the function will run on a single core, unless the user specifies the number of cores using \code{\link[future]{plan}} (e.g. `future::plan(future::multisession, workers = 4)`) before running the `cartogram_cont` function.
-* "auto" - Use all except available cores (identified with \code{\link[parallelly]{availableCores}}) except 1, to keep the system responsive.
-* a `numeric` value - Use the specified number of cores. In this case `cartogram_cont` will use set the specified number of cores internally with `future::plan(future::multisession, workers = n_cpu)` and revert that back by switching the plan back to whichever plan might have been set before by the user. If only 1 core is set, the function will not require `future` and `future.apply` and will run on a single core.}
+\itemize{
+\item "respect_future_plan" - By default, the function will run on a single core, unless the user specifies the number of cores using \code{\link[future]{plan}} (e.g. \code{future::plan(future::multisession, workers = 4)}) before running the \code{cartogram_cont} function.
+\item "auto" - Use all except available cores (identified with \code{\link[parallelly]{availableCores}}) except 1, to keep the system responsive.
+\item a \code{numeric} value - Use the specified number of cores. In this case \code{cartogram_cont} will use set the specified number of cores internally with \code{future::plan(future::multisession, workers = n_cpu)} and revert that back by switching the plan back to whichever plan might have been set before by the user. If only 1 core is set, the function will not require \code{future} and \code{future.apply} and will run on a single core.
+}}
 
-\item{show_progress}{A `logical` value. If TRUE, show progress bar. Defaults to TRUE.}
+\item{show_progress}{A \code{logical} value. If TRUE, show progress bar. Defaults to TRUE.}
 }
 \value{
 An object of the same class as x
@@ -86,7 +90,7 @@ nc_utm <- st_transform(nc, 26916)
 # Create cartogram
 nc_utm_carto <- cartogram_cont(nc_utm, weight = "BIR74", itermax = 5)
 
-# Plot 
+# Plot
 par(mfrow=c(2,1))
 plot(nc[,"BIR74"], main="original", key.pos = NULL, reset = FALSE)
 plot(nc_utm_carto[,"BIR74"], main="distorted", key.pos = NULL, reset = FALSE)
@@ -107,7 +111,7 @@ nc_utm <- st_transform(nc, 26916)
 nc_utm_carto <- cartogram_cont(nc_utm, weight = "BIR74", itermax = 5,
 n_cpu = 2)
 
-# Plot 
+# Plot
 par(mfrow=c(2,1))
 plot(nc[,"BIR74"], main="original", key.pos = NULL, reset = FALSE)
 plot(nc_utm_carto[,"BIR74"], main="distorted", key.pos = NULL, reset = FALSE)
@@ -135,9 +139,9 @@ future::plan(future::multisession, workers = 2)
 nc_utm_carto <- cartogram_cont(nc_utm, weight = "BIR74", itermax = 5)
 
 # Shutdown the R processes that were created by the future plan
-future::plan(future::sequential) 
+future::plan(future::sequential)
 
-# Plot 
+# Plot
 par(mfrow=c(2,1))
 plot(nc[,"BIR74"], main="original", key.pos = NULL, reset = FALSE)
 plot(nc_utm_carto[,"BIR74"], main="distorted", key.pos = NULL, reset = FALSE)

@@ -14,13 +14,15 @@ nc_cartogram(shp, ...)
   \describe{
     \item{\code{weight}}{Name of the weighting variable in x}
     \item{\code{k}}{Factor expansion for the unit with the greater value}
-    \item{\code{inplace}}{If TRUE, each polygon is modified in its original place, 
+    \item{\code{inplace}}{If TRUE, each polygon is modified in its original place,
 if FALSE multi-polygons are centered on their initial centroid}
     \item{\code{n_cpu}}{Number of cores to use. Defaults to "respect_future_plan". Available options are:
-* "respect_future_plan" - By default, the function will run on a single core, unless the user specifies the number of cores using \code{\link[future]{plan}} (e.g. `future::plan(future::multisession, workers = 4)`) before running the `cartogram_ncont` function.
-* "auto" - Use all except available cores (identified with \code{\link[parallelly]{availableCores}}) except 1, to keep the system responsive.
-* a `numeric` value - Use the specified number of cores. In this case `cartogram_ncont` will use set the specified number of cores internally with `future::plan(future::multisession, workers = n_cpu)` and revert that back by switching the plan back to whichever plan might have been set before by the user. If only 1 core is set, the function will not require `future` and `future.apply` and will run on a single core.}
-    \item{\code{show_progress}}{A `logical` value. If TRUE, show progress bar. Defaults to TRUE.}
+\itemize{
+\item "respect_future_plan" - By default, the function will run on a single core, unless the user specifies the number of cores using \code{\link[future]{plan}} (e.g. \code{future::plan(future::multisession, workers = 4)}) before running the \code{cartogram_ncont} function.
+\item "auto" - Use all except available cores (identified with \code{\link[parallelly]{availableCores}}) except 1, to keep the system responsive.
+\item a \code{numeric} value - Use the specified number of cores. In this case \code{cartogram_ncont} will use set the specified number of cores internally with \code{future::plan(future::multisession, workers = n_cpu)} and revert that back by switching the plan back to whichever plan might have been set before by the user. If only 1 core is set, the function will not require \code{future} and \code{future.apply} and will run on a single core.
+}}
+    \item{\code{show_progress}}{A \code{logical} value. If TRUE, show progress bar. Defaults to TRUE.}
   }}
 }
 \description{

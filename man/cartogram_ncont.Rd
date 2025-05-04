@@ -11,8 +11,8 @@ cartogram_ncont(
   weight,
   k = 1,
   inplace = TRUE,
-  n_cpu = "respect_future_plan",
-  show_progress = TRUE
+  n_cpu = getOption("cartogram_n_cpu", "respect_future_plan"),
+  show_progress = getOption("cartogram.show_progress", TRUE)
 )
 
 \method{cartogram_ncont}{SpatialPolygonsDataFrame}(
@@ -20,8 +20,8 @@ cartogram_ncont(
   weight,
   k = 1,
   inplace = TRUE,
-  n_cpu = "respect_future_plan",
-  show_progress = TRUE
+  n_cpu = getOption("cartogram_n_cpu", "respect_future_plan"),
+  show_progress = getOption("cartogram.show_progress", TRUE)
 )
 
 \method{cartogram_ncont}{sf}(
@@ -29,8 +29,8 @@ cartogram_ncont(
   weight,
   k = 1,
   inplace = TRUE,
-  n_cpu = "respect_future_plan",
-  show_progress = TRUE
+  n_cpu = getOption("cartogram_n_cpu", "respect_future_plan"),
+  show_progress = getOption("cartogram.show_progress", TRUE)
 )
 }
 \arguments{
@@ -40,15 +40,17 @@ cartogram_ncont(
 
 \item{k}{Factor expansion for the unit with the greater value}
 
-\item{inplace}{If TRUE, each polygon is modified in its original place, 
+\item{inplace}{If TRUE, each polygon is modified in its original place,
 if FALSE multi-polygons are centered on their initial centroid}
 
 \item{n_cpu}{Number of cores to use. Defaults to "respect_future_plan". Available options are:
-* "respect_future_plan" - By default, the function will run on a single core, unless the user specifies the number of cores using \code{\link[future]{plan}} (e.g. `future::plan(future::multisession, workers = 4)`) before running the `cartogram_ncont` function.
-* "auto" - Use all except available cores (identified with \code{\link[parallelly]{availableCores}}) except 1, to keep the system responsive.
-* a `numeric` value - Use the specified number of cores. In this case `cartogram_ncont` will use set the specified number of cores internally with `future::plan(future::multisession, workers = n_cpu)` and revert that back by switching the plan back to whichever plan might have been set before by the user. If only 1 core is set, the function will not require `future` and `future.apply` and will run on a single core.}
+\itemize{
+\item "respect_future_plan" - By default, the function will run on a single core, unless the user specifies the number of cores using \code{\link[future]{plan}} (e.g. \code{future::plan(future::multisession, workers = 4)}) before running the \code{cartogram_ncont} function.
+\item "auto" - Use all except available cores (identified with \code{\link[parallelly]{availableCores}}) except 1, to keep the system responsive.
+\item a \code{numeric} value - Use the specified number of cores. In this case \code{cartogram_ncont} will use set the specified number of cores internally with \code{future::plan(future::multisession, workers = n_cpu)} and revert that back by switching the plan back to whichever plan might have been set before by the user. If only 1 core is set, the function will not require \code{future} and \code{future.apply} and will run on a single core.
+}}
 
-\item{show_progress}{A `logical` value. If TRUE, show progress bar. Defaults to TRUE.}
+\item{show_progress}{A \code{logical} value. If TRUE, show progress bar. Defaults to TRUE.}
 }
 \value{
 An object of the same class as x with resized polygon boundaries
@@ -69,7 +71,7 @@ nc_utm <- st_transform(nc, 26916)
 # Create cartogram
 nc_utm_carto <- cartogram_ncont(nc_utm, weight = "BIR74")
 
-# Plot 
+# Plot
 par(mfrow=c(2,1))
 plot(nc[,"BIR74"], main="original", key.pos = NULL, reset = FALSE)
 plot(st_geometry(nc_utm), main="distorted", reset = FALSE)
@@ -90,7 +92,7 @@ nc_utm <- st_transform(nc, 26916)
 # Create cartogram using 2 CPU cores on local machine
 nc_utm_carto <- cartogram_ncont(nc_utm, weight = "BIR74", n_cpu = 2)
 
-# Plot 
+# Plot
 par(mfrow=c(2,1))
 plot(nc[,"BIR74"], main="original", key.pos = NULL, reset = FALSE)
 plot(st_geometry(nc_utm), main="distorted", reset = FALSE)
@@ -117,13 +119,13 @@ future::plan(future::multisession, workers = 2)
 nc_utm_carto <- cartogram_ncont(nc_utm, weight = "BIR74")
 
 # Shutdown the R processes that were created by the future plan
-future::plan(future::sequential) 
+future::plan(future::sequential)
 
-# Plot 
+# Plot
 par(mfrow=c(2,1))
-plot(nc[,"BIR74"], main="original", key.pos = NULL, reset = FALSE)
-plot(st_geometry(nc_utm), main="distorted", reset = FALSE)
-plot(nc_utm_carto[,"BIR74"], add =TRUE)
+plot(nc[,"BIR74"], main = "original", key.pos = NULL, reset = FALSE)
+plot(st_geometry(nc_utm), main = "distorted", reset = FALSE)
+plot(nc_utm_carto[,"BIR74"], add = TRUE)
 
 
 }
