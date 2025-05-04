@@ -269,7 +269,7 @@ cartogram_cont.sf <- function(x, weight, itermax = 15, maxSizeError = 1.0001,
     on.exit(progressr::handlers(old_handlers), add = TRUE)
     global_handlers_status <- progressr::handlers(global = NA)
     progressr::handlers(global = TRUE)
-    on.exit(progressr::handlers(global = global_handlers_status), add = FALSE)
+    on.exit(progressr::handlers(global = global_handlers_status), add = TRUE)
     p <- progressr::progressor(steps = itermax * nrow(x))
   } else {
     p <- function(...) NULL
@@ -312,17 +312,13 @@ cartogram_cont.sf <- function(x, weight, itermax = 15, maxSizeError = 1.0001,
         x.iter_geom <- future.apply::future_lapply(
           seq_len(nrow(x.iter)),
           function(i) {
-            if (interactive() && show_progress) {
+            if (show_progress) {
               p(sprintf("[Iter.:%d/%d] Polygon %d", z, itermax, i))
             }
             process_polygon(x.iter_geom[[i]], centroids, mass, radius, forceReductionFactor)
           },
           future.seed = TRUE
         )
-        # in case we used the local in-fuction plan instead of externally future plan set by user, shutdown the workers
-        if (n_cpu != "respect_future_plan") {
-          future::plan(future::sequential)
-        }
     } else {
       x.iter_geom <- lapply(
         seq_len(nrow(x.iter)),
@@ -347,7 +343,7 @@ cartogram_cont.sf <- function(x, weight, itermax = 15, maxSizeError = 1.0001,
 
     sf::st_geometry(x.iter) <- do.call(sf::st_sfc, x.iter_geom)
   }
-
+  
   # Restore CRS
   st_crs(x.iter) <- st_crs(x)
 
