@@ -337,64 +337,6 @@ cartogram_cont.sf <- function(
     cl = NULL
   )
 
-  # for (z in seq_len(itermax)) {
-  #   # break if mean Sizer Error is less than maxSizeError
-  #   if (meanSizeError < maxSizeError) break
-
-  #   # geometry
-  #   x.iter_geom <- sf::st_geometry(x.iter)
-
-  #   # polygon centroids (centroids for multipart polygons)
-  #   centroids_sf <- sf::st_centroid(x.iter_geom)
-  #   st_crs(centroids_sf) <- sf::st_crs(NULL)
-  #   centroids <- do.call(rbind, centroids_sf)
-
-  #   # area for polygons and total area
-  #   area <- as.numeric(sf::st_area(x.iter))
-  #   areaTotal <- as.numeric(sum(area))
-  #   area[area < 0] <- 0
-
-  #   # prepare force field calculations
-  #   desired <- areaTotal * value / valueTotal
-  #   desired[desired == 0] <- 0.01 # set minimum size to prevent inf values size Error
-  #   radius <- sqrt(area / pi)
-  #   mass <- sqrt(desired / pi) - sqrt(area / pi)
-
-  #   sizeError <- apply(cbind(area, desired), 1, max) / apply(cbind(area, desired), 1, min)
-  #   meanSizeError <- mean(sizeError, na.rm = TRUE)
-  #   forceReductionFactor <- 1 / (1 + meanSizeError)
-
-  #   if (verbose) {
-  #     message(paste0("Mean size error for iteration ", z, ": ", round(meanSizeError, 5)))
-  #   }
-
-  #   # process each polygon via pbapply
-  #   if (identical(clArg, "future")) {
-  #     x.iter_geom <- pbapply::pblapply(
-  #       seq_len(nrow(x.iter)),
-  #       function(i) {
-  #         process_polygon(
-  #           x.iter_geom[[i]], centroids, mass, radius, forceReductionFactor
-  #         )
-  #       },
-  #       cl = "future",
-  #       future.seed = TRUE
-  #     )
-  #   } else {
-  #     x.iter_geom <- pbapply::pblapply(
-  #       seq_len(nrow(x.iter)),
-  #       function(i) {
-  #         process_polygon(
-  #           x.iter_geom[[i]], centroids, mass, radius, forceReductionFactor
-  #         )
-  #       },
-  #       cl = NULL
-  #     )
-  #   }
-  # 
-  #   sf::st_geometry(x.iter) <- do.call(sf::st_sfc, x.iter_geom)
-  # }
-
   # Restore CRS
   st_crs(x.iter) <- st_crs(x)
 
