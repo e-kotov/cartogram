@@ -28,7 +28,7 @@
 #' * "respect_future_plan" - By default, the function will run on a single core, unless the user specifies the number of cores using \code{\link[future]{plan}} (e.g. `future::plan(future::multisession, workers = 4)`) before running the `cartogram_ncont` function.
 #' * "auto" - Use all except available cores (identified with \code{\link[parallelly]{availableCores}}) except 1, to keep the system responsive.
 #' * a `numeric` value - Use the specified number of cores. In this case `cartogram_ncont` will use set the specified number of cores internally with `future::plan(future::multisession, workers = n_cpu)` and revert that back by switching the plan back to whichever plan might have been set before by the user. If only 1 core is set, the function will not require `future` and `future.apply` and will run on a single core.
-#' @param show_progress A `logical` value. If TRUE, show progress bar. Defaults to TRUE.
+#' @param show_progress A `logical` value. If TRUE, show progress bar. Defaults to TRUE. In non-interactive sessions and in RMarkdown or Quarto markdown documents rendering it is overridden to FALSE to prevent printing of the progress bar into the final document.
 #' @return An object of the same class as x with resized polygon boundaries
 #' @export
 #' @importFrom methods is slot as
@@ -156,7 +156,13 @@ cartogram_ncont.sf <- function(
   n_cpu = getOption("cartogram_n_cpu", "respect_future_plan"),
   show_progress = getOption("cartogram.show_progress", TRUE)
 ) {
-
+  # when enabled, overried and disable progress bar for non-interactive sessions and knitr/rmarkdown/quarto
+  if( show_progress == TRUE){
+    is_rendering <- isTRUE(getOption("knitr.in.progress")) ||
+      isTRUE(getOption("rstudio.markdownToHTML"))
+    show_progress <- interactive() && !is_rendering
+  }
+  
   if (isTRUE(sf::st_is_longlat(x))) {
     stop('Using an unprojected map. This function does not give correct centroids and distances for longitude/latitude data:\nUse "st_transform()" to transform coordinates to another projection.', call. = FALSE)
   }
@@ -212,13 +218,13 @@ cartogram_ncont.sf <- function(
   if (multithreadded == TRUE) {
     cartogram_assert_package("future.apply")
     # handle show_progress
-    if (show_progress && interactive()) {
+    if (show_progress) {
       cartogram_assert_package("progressr")
       old_handlers <- progressr::handlers("progress")
       on.exit(progressr::handlers(old_handlers), add = TRUE)
       global_handlers_status <- progressr::handlers(global = NA)
       progressr::handlers(global = TRUE)
-      on.exit(progressr::handlers(global = global_handlers_status), add = FALSE)
+      on.exit(progressr::handlers(global = global_handlers_status), add = TRUE)
       p <- progressr::progressor(along = seq_len(nrow(spdf)))
     } else {
       p <- function(...) NULL # don't show progress
@@ -227,7 +233,7 @@ cartogram_ncont.sf <- function(
     spdf_geometry_list <- future.apply::future_lapply(
       X = seq_len(nrow(spdf)),
       FUN = function(i) {
-        if (interactive() && show_progress) {
+        if (show_progress) {
           p(sprintf("Processing polygon %d", i))
         }
         rescalePoly.sf(
@@ -239,13 +245,13 @@ cartogram_ncont.sf <- function(
       future.seed = TRUE
     )
   } else if (multithreadded == FALSE) {
-    if (interactive() && show_progress) {
+    if (show_progress) {
       pb <- utils::txtProgressBar(min = 0, max = nrow(spdf), style = 3)
     }
     spdf_geometry_list <- lapply(
       X = seq_len(nrow(spdf)),
       FUN = function(i) {
-        if (interactive() && show_progress) {
+        if (show_progress) {
           utils::setTxtProgressBar(pb, i)
         }
         rescalePoly.sf(
